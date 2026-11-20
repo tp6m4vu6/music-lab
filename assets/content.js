@@ -1,6 +1,6 @@
 const CATEGORIES=['樂理與調式','合成器教學','節奏與曲風','編曲與歌曲分析','混音與音色','插件與資源','其他'];
-const routeCategories={theory:'樂理與調式',synth:'合成器教學',groove:'節奏與曲風',arrangement:'編曲與歌曲分析',mix:'混音與音色',resources:'插件與資源'};
-const modules=[['theory','♬','樂理與調式','調式亮暗、和弦、次屬與 Voice Leading'],['synth','▥','合成器教學','Serum → Vital 對照、音色配方與調變'],['groove','◉','節奏與曲風','Funk、Acid Jazz、UK Garage 與切分'],['arrangement','▦','編曲與歌曲分析','歌曲結構、K-pop 音色拆解、Loop'],['mix','≋','混音與音色','EQ、音量、Pan、Reverb、Sidechain'],['resources','↗','插件與資源','免費工具、教學、Preset 與收藏'],['articles','▤','主題教材','GitHub 內容管理：K-pop、樂理與合成器教學']];
+const routeCategories={theory:'樂理與調式',synth:'合成器教學',synthmap:'合成器教學',groove:'節奏與曲風',arrangement:'編曲與歌曲分析',mix:'混音與音色',resources:'插件與資源'};
+const modules=[['theory','♬','樂理與調式','調式亮暗、和弦、次屬與 Voice Leading'],['synth','▥','音色製作教學','Lead、Bass、Pad / Keys 音色配方及實作步驟'],['synthmap','⇄','Serum → Vital 對照','介面位置示意圖、圖示與參數對照'],['groove','◉','節奏與曲風','Funk、Acid Jazz、UK Garage 與切分'],['arrangement','▦','編曲與歌曲分析','歌曲結構、K-pop 音色拆解、Loop'],['mix','≋','混音與音色','EQ、音量、Pan、Reverb、Sidechain'],['resources','↗','插件與資源','免費工具、教學、Preset 與收藏'],['articles','▤','主題教材','GitHub 內容管理：K-pop、樂理與合成器教學']];
 const MODES=[
  {name:'Lydian',notes:[0,2,4,6,7,9,11],scale:['C','D','E','F♯','G','A','B'],chord:'Cmaj7',desc:'明亮、漂浮；與 Ionian 相比，升高第 4 音 F → F♯。',formula:'1 · 2 · 3 · ♯4 · 5 · 6 · 7',degrees:'C · E · G · B'},
  {name:'Ionian',notes:[0,2,4,5,7,9,11],scale:['C','D','E','F','G','A','B'],chord:'Cmaj7',desc:'大調基準；清楚、明亮，適合當作其他調式的比較基準。',formula:'1 · 2 · 3 · 4 · 5 · 6 · 7',degrees:'C · E · G · B'},
@@ -27,6 +27,28 @@ const SYNTH={
  ['MATRIX','MATRIX → 調變來源、目標、深度','調變深度數值不一定相同'],['MACRO 1–4','VOICE → Macro 1–4','適合控制 Brightness、Space 等多個參數'],['MONO','VOICE → Voices = 1','演奏方式可能還需搭配 Legato'],['LEGATO','VOICE → Legato','重疊彈奏時不重觸發的行為'],['PORTA / GLIDE','VOICE → Glide / Slope','滑音時間與曲線'],['MASTER','Master Level','避免比較時音量差造成誤判'],['Pitch Bend Range','VOICE 底部 Bend','注意上下行範圍'],['GLOBAL','ADVANCED 和 VOICE 底部','某些設定分散在不同頁面']
  ]
 };
+
+const SYNTH_META={
+ '振盪器 OSC':{symbol:'◉',color:'osc',serum:'Serum · OSC A/B / SUB / NOISE',vital:'Vital · VOICE / OSC 1–3 / Sampler'},
+ 'Filter 濾波器':{symbol:'▽',color:'filter',serum:'Serum · OSC 頁 / FILTER',vital:'Vital · VOICE / Filter 1–2'},
+ 'ENV / LFO':{symbol:'∿',color:'mod',serum:'Serum · OSC 頁下方 ENV / LFO',vital:'Vital · VOICE 右側 ENV / LFO'},
+ 'FX 效果器':{symbol:'✦',color:'fx',serum:'Serum · FX 分頁',vital:'Vital · EFFECTS 分頁'},
+ '進階與演奏':{symbol:'◎',color:'adv',serum:'Serum · MATRIX / GLOBAL / 演奏設定',vital:'Vital · MATRIX / ADVANCED / VOICE 底部'}
+};
+const SERUM_MAP_BLOCKS=[
+ {area:'osc',group:'振盪器 OSC',label:'OSC A / B · SUB / NOISE',where:'OSC 頁 · 上方',detail:'波形、WT POS、Unison、Detune'},
+ {area:'filter',group:'Filter 濾波器',label:'FILTER',where:'OSC 頁 · 右側',detail:'Cutoff、Resonance、Drive'},
+ {area:'mod',group:'ENV / LFO',label:'ENV / LFO',where:'OSC 頁 · 下方',detail:'包絡、LFO、調變拖曳'},
+ {area:'fx',group:'FX 效果器',label:'FX',where:'上方獨立分頁',detail:'Reverb、Delay、Distortion'},
+ {area:'adv',group:'進階與演奏',label:'MATRIX / GLOBAL',where:'上方分頁',detail:'Macro、調變路由、演奏設定'}
+];
+const VITAL_MAP_BLOCKS=[
+ {area:'osc',group:'振盪器 OSC',label:'OSC 1 / 2 / 3 · Sampler',where:'VOICE · 左上',detail:'Wavetable、Frame、Voices、Detune'},
+ {area:'filter',group:'Filter 濾波器',label:'Filter 1 / Filter 2',where:'VOICE · 左下',detail:'Cutoff、Resonance、Mix'},
+ {area:'mod',group:'ENV / LFO',label:'ENV / LFO',where:'VOICE · 右側',detail:'ADSR、LFO、Tempo、調變'},
+ {area:'fx',group:'FX 效果器',label:'EFFECTS',where:'上方分頁',detail:'Delay、Reverb、Compressor、EQ'},
+ {area:'adv',group:'進階與演奏',label:'ADVANCED / MATRIX',where:'上方及演奏區',detail:'Glide、Legato、Macro、路由'}
+];
 const RECIPES=[
  {title:'K-pop Supersaw Lead',tag:'K-pop · Synth Lead',desc:'亮、寬、適合 Hook 或副歌的大型合成器音色。',steps:['OSC 1 選 Saw；先單聲道確認音高','Unison 5–7 Voices，少量 Detune','設短 Attack，Sustain 偏高，Release 中短','Filter Low-pass 稍降 Cutoff，再用 ENV 控制明亮度','最後加 Chorus、少量 Reverb，對照原曲調整']},
  {title:'Funk Pluck Bass',tag:'Funk · Bass',desc:'短促、有彈性、與 Kick 交錯的音色。',steps:['OSC 1 選 Saw 或 Square；必要時加 Sine 作低頻','ENV 1：快速 Attack、短 Decay、較低 Sustain','Filter Low-pass，ENV 2 調變 Cutoff 形成 Pluck','依需要開 Mono / Glide，保持低頻起音穩定','先不加大 Reverb；讓 Bass 與 Drum 對齊 Groove']},
