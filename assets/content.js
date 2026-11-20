@@ -1,6 +1,6 @@
 const CATEGORIES=['樂理與調式','合成器教學','節奏與曲風','編曲與歌曲分析','混音與音色','插件與資源','其他'];
-const routeCategories={theory:'樂理與調式',synth:'合成器教學',synthmap:'合成器教學',groove:'節奏與曲風',arrangement:'編曲與歌曲分析',mix:'混音與音色',resources:'插件與資源'};
-const modules=[['theory','♬','樂理與調式','調式亮暗、和弦、次屬與 Voice Leading'],['synth','▥','音色製作教學','Lead、Bass、Pad / Keys 音色配方及實作步驟'],['synthmap','⇄','Serum → Vital 對照','介面位置示意圖、圖示與參數對照'],['groove','◉','節奏與曲風','Funk、Acid Jazz、UK Garage 與切分'],['arrangement','▦','編曲與歌曲分析','歌曲結構、K-pop 音色拆解、Loop'],['mix','≋','混音與音色','EQ、音量、Pan、Reverb、Sidechain'],['resources','↗','插件與資源','免費工具、教學、Preset 與收藏'],['articles','▤','主題教材','GitHub 內容管理：K-pop、樂理與合成器教學']];
+const routeCategories={theory:'樂理與調式',synth:'合成器教學',groove:'節奏與曲風',arrangement:'編曲與歌曲分析',mix:'混音與音色',resources:'插件與資源'};
+const modules=[['theory','♬','樂理與調式','調式亮暗、和弦、次屬與 Voice Leading'],['synth','▥','合成器教學','音色製作教學與 Serum → Vital 對照，共用一個入口'],['groove','◉','節奏與曲風','Funk、Acid Jazz、UK Garage 與切分'],['arrangement','▦','編曲與歌曲分析','歌曲結構、K-pop 音色拆解、Loop'],['mix','≋','混音與音色','EQ、音量、Pan、Reverb、Sidechain'],['resources','↗','插件與資源','免費工具、教學、Preset 與收藏'],['articles','▤','主題教材','GitHub 內容管理：K-pop、樂理與合成器教學']];
 const MODES=[
  {name:'Lydian',notes:[0,2,4,6,7,9,11],scale:['C','D','E','F♯','G','A','B'],chord:'Cmaj7',desc:'明亮、漂浮；與 Ionian 相比，升高第 4 音 F → F♯。',formula:'1 · 2 · 3 · ♯4 · 5 · 6 · 7',degrees:'C · E · G · B'},
  {name:'Ionian',notes:[0,2,4,5,7,9,11],scale:['C','D','E','F','G','A','B'],chord:'Cmaj7',desc:'大調基準；清楚、明亮，適合當作其他調式的比較基準。',formula:'1 · 2 · 3 · 4 · 5 · 6 · 7',degrees:'C · E · G · B'},

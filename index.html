@@ -14,8 +14,7 @@
  <div><div class="nav-cap">KNOWLEDGE HUB</div><nav class="nav" id="nav">
  <button data-view="home" class="active"><span class="ico">◈</span><span class="word">總覽首頁</span></button>
  <button data-view="theory"><span class="ico">♬</span><span class="word">樂理與調式</span></button>
- <button data-view="synth"><span class="ico">▥</span><span class="word">音色製作教學</span></button>
- <button data-view="synthmap"><span class="ico">⇄</span><span class="word">Serum → Vital 對照</span></button>
+ <button data-view="synth"><span class="ico">▥</span><span class="word">合成器教學</span></button>
  <button data-view="groove"><span class="ico">◉</span><span class="word">節奏與曲風</span></button>
  <button data-view="arrangement"><span class="ico">▦</span><span class="word">編曲與歌曲分析</span></button>
  <button data-view="mix"><span class="ico">≋</span><span class="word">混音與音色</span></button>
@@ -29,7 +28,7 @@
 <main class="main">
  <div class="topbar"><div class="eyebrow">YOUR CREATIVE WORKSPACE · 2026</div><div class="right"><input id="globalSearch" class="search" type="search" placeholder="⌕ 搜尋樂理、Vital、筆記…" aria-label="搜尋知識庫"><button class="button ghost" id="newNoteTop">＋ 新筆記</button></div></div>
  <section id="view-home" class="view active">
-  <div class="hero"><div class="eyebrow">FROM IDEAS TO MUSIC</div><h2>把每一次的學習，<br>累積成自己的音樂語言。</h2><p>把零散的樂理、K-pop 合成器音色、Funk Groove、編曲技巧和插件資源集中整理。看得懂、聽得見，也能直接帶進 Studio One 練習。</p><button class="button" onclick="go('synthmap')">查看 Serum → Vital 對照　↗</button></div>
+  <div class="hero"><div class="eyebrow">FROM IDEAS TO MUSIC</div><h2>把每一次的學習，<br>累積成自己的音樂語言。</h2><p>把零散的樂理、K-pop 合成器音色、Funk Groove、編曲技巧和插件資源集中整理。看得懂、聽得見，也能直接帶進 Studio One 練習。</p><button class="button" data-go="synth" data-synth-panel="reference">查看 Serum → Vital 對照　↗</button></div>
   <div class="grid" id="stats"></div>
   <div class="section-head"><div><h2>知識分類</h2><p>每個領域都有整理好的基礎內容，你可以繼續新增自己的筆記。</p></div></div>
   <div class="grid" id="moduleGrid"></div>
@@ -43,15 +42,21 @@
   <div class="section-head"><h2>和聲學習索引</h2></div><div class="grid two"><div class="card"><div class="chips"><span class="chip mint">基礎</span></div><h3>和弦與功能</h3><p>三和弦／七和弦、調內和弦、級數、主屬功能、轉位與 Voice Leading。</p><div class="dim text-explain">例如：Em → C → G → D，可先確認每個和弦組成音，再比較聲部之間的最近移動。</div></div><div class="card"><div class="chips"><span class="chip gold">進階</span></div><h3>和聲色彩</h3><p>次屬和弦、Modal Interchange、add9、sus4、延伸和弦與轉調。</p><div class="dim text-explain">例如：在 A 大調中 F♯7 → Bm 是 V7/ii → ii，注意 A♯ → B 的導向。</div></div></div>
  </section>
  <section id="view-synth" class="view">
- <div class="section-head"><div><div class="eyebrow">SOUND DESIGN · TUTORIALS</div><h2>音色製作教學</h2><p>從音色目標開始，一步步在 Vital 完成 Lead、Bass 和 Warm Keys；也能將技巧放進 Studio One 的作品。</p></div><button class="button ghost small" onclick="openNote('合成器教學')">＋ 添加音色筆記</button></div>
- <div class="callout">建議順序：先聽目標音色 → OSC → Envelope / Filter → LFO → FX。需要查看影片中 Serum 控制項的位置時，請開啟後面的 <button class="inline-action" data-go="synthmap">Serum → Vital 對照頁 →</button></div>
+ <div class="section-head"><div><div class="eyebrow">SOUND DESIGN</div><h2>合成器教學</h2><p>用 Vital 學習音色製作；需要跟做 Serum 教學影片時，切到參數與介面對照。</p></div><button class="button ghost small" onclick="openNote('合成器教學')">＋ 添加音色筆記</button></div>
+ <div class="synth-subnav" role="tablist" aria-label="合成器教學內部分頁">
+   <button type="button" class="synth-subtab active" id="synthTabTutorial" role="tab" aria-selected="true" aria-controls="synthPanelTutorial" data-synth-panel="tutorial"><span class="subtab-icon">♫</span><span><strong>音色製作教學</strong><small>音色配方、實作步驟</small></span></button>
+   <button type="button" class="synth-subtab" id="synthTabReference" role="tab" aria-selected="false" aria-controls="synthPanelReference" data-synth-panel="reference"><span class="subtab-icon">⇄</span><span><strong>Serum → Vital 對照</strong><small>功能圖示、介面位置、參數表</small></span></button>
+ </div>
+ <div id="synthPanelTutorial" class="synth-panel active" role="tabpanel" aria-labelledby="synthTabTutorial">
+  <div class="section-head"><div><h2>音色製作教學</h2><p>從 K-pop Lead、Funk Bass 到 Warm Keys，一步步在 Vital 重做音色。</p></div></div>
+  <div class="callout">建議順序：先聽目標音色 → OSC → Envelope / Filter → LFO → FX。需要查看影片中 Serum 控制項的位置時，請開啟「Serum → Vital 對照」內部分頁：<button class="inline-action" data-synth-panel="reference">開啟對照 →</button></div>
  <div class="section-head"><div><h2>實作配方</h2><p>從最常出現在 K-pop 和 Funk 的音色開始製作。</p></div></div><div class="grid" id="recipeGrid"></div>
   <div class="section-head"><h2>學習路線</h2></div><div class="card"><div class="step"><span class="step-num">1</span><div><strong>OSC：先確定音色的骨架</strong><p>波形、音高、Unison、Detune。FX 先全部關掉。</p></div></div><div class="step"><span class="step-num">2</span><div><strong>ENV + Filter：調整起音、明暗與長短</strong><p>Attack、Decay、Sustain、Release 與 Cutoff，先還原「形狀」。</p></div></div><div class="step"><span class="step-num">3</span><div><strong>LFO + Matrix：模仿節奏和動態</strong><p>把 LFO 指派到 Cutoff、Pitch、Volume 等，檢查 Trigger、Rate、調變深度。</p></div></div><div class="step"><span class="step-num">4</span><div><strong>FX：最後才比對整體質感</strong><p>Chorus、Reverb、Delay、Distortion；同時比對音量以免被響度誤導。</p></div></div></div>
- <div class="card" style="margin-top:18px"><h3>需要對照 Serum 教學影片？</h3><p>另一頁提供五類圖示、雙介面功能區塊圖及參數表，方便從 Serum 找到 Vital 裡的相應功能。</p><button class="button ghost small" data-go="synthmap">前往 Serum → Vital 對照　→</button></div>
- </section>
- <section id="view-synthmap" class="view">
- <div class="section-head"><div><div class="eyebrow">SERUM ↔ VITAL · REFERENCE</div><h2>Serum → Vital 參數對照</h2><p>把 Serum 1 的音色教學轉換成 Vital 操作：先看介面位置，再確認參數名稱與功能差異。</p></div><button class="button ghost small" data-go="synth">← 返回音色製作教學</button></div>
- <div class="callout">這份對照以 <strong>Serum 1 → Vital</strong> 的常見流程為主。相似功能不代表波表、演算法及旋鈕數值完全相同；下方為<strong>簡化位置示意圖</strong>，不是軟體實際介面截圖。</div>
+ <div class="card" style="margin-top:18px"><h3>需要對照 Serum 教學影片？</h3><p>內部對照分頁提供五類圖示、雙介面功能區塊圖及參數表，方便從 Serum 找到 Vital 裡的相應功能。</p><button class="button ghost small" data-synth-panel="reference">前往 Serum → Vital 對照　→</button></div>
+ </div>
+ <div id="synthPanelReference" class="synth-panel" role="tabpanel" aria-labelledby="synthTabReference" hidden>
+  <div class="section-head"><div><h2>Serum → Vital 參數對照</h2><p>依圖示、介面位置示意與參數表，在 Vital 找到 Serum 教學中的功能。</p></div></div>
+  <div class="callout">這份對照以 <strong>Serum 1 → Vital</strong> 的常見流程為主。相似功能不代表波表、演算法及旋鈕數值完全相同；下方為<strong>簡化位置示意圖</strong>，不是軟體實際介面截圖。</div>
  <div class="synth-guide-head">
    <div class="card"><div class="eyebrow">SYMBOL LEGEND</div><h3>功能圖示</h3><div class="synth-legend" id="synthLegend"></div></div>
    <div class="card"><div class="eyebrow">HOW TO USE</div><h3>先選分類，再找位置</h3><p>切換 OSC、Filter、ENV / LFO、FX 或進階分頁，兩邊示意圖會同步高亮對應模組，表格也會同步顯示該類參數。</p></div>
@@ -63,7 +68,8 @@
  </div>
  <div class="section-head"><div><h2>參數對照表</h2><p>同一圖示代表同類功能，但具體控制和聲音結果不一定相同。</p></div></div>
  <div class="comparison"><table><thead><tr><th style="width:27%">Serum 功能</th><th style="width:36%">Vital 對應位置</th><th>差異與注意</th></tr></thead><tbody id="synthTable"></tbody></table></div>
- <div class="card" style="margin-top:18px"><h3>看懂位置之後，實際做一次音色</h3><p>前一頁有 K-pop Supersaw、Funk Pluck Bass 和 Warm Keys 的步驟練習。</p><button class="button ghost small" data-go="synth">← 前往音色製作教學</button></div>
+ <div class="card" style="margin-top:18px"><h3>看懂位置之後，實際做一次音色</h3><p>前一個分頁有 K-pop Supersaw、Funk Pluck Bass 和 Warm Keys 的步驟練習。</p><button class="button ghost small" data-synth-panel="tutorial">← 前往音色製作教學</button></div>
+ </div>
  </section>
  <section id="view-groove" class="view"><div class="section-head"><div><div class="eyebrow">RHYTHM & STYLES</div><h2>節奏與曲風</h2><p>把「切分」拆成可辨認、可套用的 Groove，不只依靠曲風名稱。</p></div><button class="button ghost small" onclick="openNote('節奏與曲風')">＋ 添加筆記</button></div><div class="grid" id="grooveGrid"></div><div class="section-head"><h2>核心概念</h2></div><div class="card"><div class="comparison"><table><thead><tr><th>元素</th><th>Funk</th><th>UK Garage</th></tr></thead><tbody><tr><td>Groove 核心</td><td>鼓、Bass、吉他／鍵盤間的鎖定與切分，重視 pocket</td><td>常見帶 Swing 的切分與 2-step 鼓組組織</td></tr><tr><td>鼓組</td><td>常以清楚的 Backbeat 與細節 Ghost Notes 支撐</td><td>Kick、Snare 分布更不規則，Hi-hat / Shaker 常帶 Shuffle</td></tr><tr><td>Bass</td><td>常和鼓形成問答、重音互補</td><td>可出現彈性、滑動與具律動感的合成 Bass</td></tr><tr><td>注意</td><td>不是每個樂器都要一直切分；空隙也很重要</td><td>不能只靠是否有切分判定；看鼓型、律動和整體編曲</td></tr></tbody></table></div></div></section>
  <section id="view-arrangement" class="view"><div class="section-head"><div><div class="eyebrow">SONGWRITING</div><h2>編曲與歌曲分析</h2><p>把喜歡的歌曲拆成可用的編曲設計與 DAW 練習。</p></div><button class="button ghost small" onclick="openNote('編曲與歌曲分析')">＋ 添加分析</button></div><div class="grid two"><div class="card"><h3>從 8 小節開始</h3><p>先做好鼓、Bass、和聲、旋律四個核心層次。確認 Hook 後，再增加過門、對比和音色細節。</p><ol class="reclist"><li>記下 BPM、Key、拍號、段落</li><li>辨認 Drum / Bass / Harmony / Lead</li><li>標記每個 4 小節的變化</li><li>模仿一個技巧，放進自己的 Loop</li></ol></div><div class="card"><h3>K-pop 音色拆解模板</h3><p>建立歌曲分析時，可直接複製這個順序到新筆記。</p><div class="dim text-explain">歌曲／時間點：<br>主旋律與音色：<br>波形或取樣推測：<br>Envelope / Filter：<br>節奏與律動：<br>效果器／空間感：<br>在 Vital 實作結果：</div></div></div><div class="section-head"><h2>歌曲分析收藏</h2></div><div id="songNotes" class="grid two"></div></section>
