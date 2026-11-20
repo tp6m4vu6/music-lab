@@ -1,0 +1,99 @@
+[
+  {
+    "id": "serum-to-vital-workflow",
+    "title": "看 Serum K-pop 音色還原影片，如何用 Vital 跟做",
+    "category": "合成器教學",
+    "tags": [
+      "Vital",
+      "Serum",
+      "K-pop"
+    ],
+    "summary": "先還原波形、音色長短、動態與效果器；理解參數後再追求音色相似度。",
+    "body": "目標：把影片中的 Serum 音色製作流程翻譯成 Vital，並在 Studio One 建立可重複使用的 Preset。\n\n1｜OSC：先辨識 Saw、Sine、Square 或自訂 Wavetable。Serum 的 OSC A/B 對應 Vital 的 OSC 1/2；Sub 通常可以用 OSC 3 選 Sine 並降低八度。\n2｜ENV：比較 Attack、Decay、Sustain、Release；決定音色起音與尾音的形狀。\n3｜Filter：設定 LP/HP/BP 類型、Cutoff、Resonance，核對哪個 OSC 被送入濾波器。\n4｜LFO / Matrix：找出調變來源、目標、速率和深度。\n5｜FX：最後再加 Distortion、Chorus、Compressor、Delay、Reverb。\n\n注意：Serum 和 Vital 的波表、Warp 演算法、濾波器與音量尺度不完全相同。看影片時優先抄『功能與聽感』，不要直接照抄旋鈕數值。Serum 2 的 Granular / Multisample 等部分功能沒有 Vital 的直接對應。\n\n練習：挑選喜歡的 K-pop 音色，在 Vital 做出 A/B 比較，記錄「哪個參數最接近原曲」與「差異還在哪裡」。",
+    "sourceUrl": "https://vital.audio/"
+  },
+  {
+    "id": "vital-oscillator-map",
+    "title": "Serum → Vital：OSC、Unison 與 Filter 對照",
+    "category": "合成器教學",
+    "tags": [
+      "OSC",
+      "Filter",
+      "Unison"
+    ],
+    "summary": "快速找到 Serum OSC A、WT POS、Sub、Noise、Detune 在 Vital 的對應位置。",
+    "body": "Serum 1 OSC A → Vital VOICE / OSC 1\nSerum 1 OSC B → Vital VOICE / OSC 2\nSerum Sub → Vital OSC 3 選 Sine，降低八度（近似替代）\nSerum Noise → Vital Sampler，載入 Noise Sample\nSerum WT POS → Vital 波表影格／Frame 位置\nSerum Unison → Vital OSC Voices\nSerum Detune → Vital OSC Detune，數值不可直接換算\nSerum Filter Cutoff / RES → Vital Filter 1 / 2 的 Cutoff / Resonance\nSerum OSC 到 Filter 的 A/B 路由 → Vital 每個 OSC 的 Filter Routing\n\n小練習：選 Saw，開 7 Voices、微調 Detune，再控制 Filter Cutoff；從乾聲開始與原曲比較。",
+    "sourceUrl": "https://vital.audio/"
+  },
+  {
+    "id": "vital-modulation-fx",
+    "title": "Serum → Vital：ADSR、LFO、Matrix、FX 對照",
+    "category": "合成器教學",
+    "tags": [
+      "ADSR",
+      "LFO",
+      "FX"
+    ],
+    "summary": "用 Vital 找到相似調變與效果器，並理解最容易踩雷的設定。",
+    "body": "Serum ENV 1 / 2 / 3 → Vital 右側 ENV 1 / 2 / 3\nSerum Attack / Hold / Decay / Sustain / Release → Vital 同名控制\nSerum LFO 1 → Vital LFO 1；Rate、Trigger / Envelope / Tempo Sync 要核對\nSerum Matrix → Vital MATRIX\nSerum FX Reverb / Delay / Chorus / Distortion / Compressor / EQ → Vital EFFECTS 中相近的同名效果器\nSerum Mono / Legato / Porta → Vital VOICE 底部 Voices / Legato / Glide\n\n實作：將 LFO 1 拖曳到 Filter Cutoff，設定 1/4 拍同步，調整調變深度；再加少量 Chorus 與 Reverb。\n\n提醒：相同名稱並不等於相同聲學演算法；比較時要先匹配輸出音量。",
+    "sourceUrl": "https://vital.audio/"
+  },
+  {
+    "id": "c-modes-seven",
+    "title": "固定 C 主音聽七種調式",
+    "category": "樂理與調式",
+    "tags": [
+      "Modes",
+      "Harmony"
+    ],
+    "summary": "保留原本的 C 調式實驗室：聽主音、音階、主七和弦，再比較色彩音。",
+    "body": "七種調式依常見亮暗排序：Lydian → Ionian → Mixolydian → Dorian → Aeolian → Phrygian → Locrian。\n\n固定主音 C：\nC Ionian：C D E F G A B\nC Dorian：C D E♭ F G A B♭\nC Phrygian：C D♭ E♭ F G A♭ B♭\nC Lydian：C D E F♯ G A B\nC Mixolydian：C D E F G A B♭\nC Aeolian：C D E♭ F G A♭ B♭\nC Locrian：C D♭ E♭ F G♭ A♭ B♭\n\n練習：在『樂理與調式』切換 C Aeolian 與 C Dorian，仔細聽 A♭ → A 造成的明暗變化。注意：單獨一音不能證明整首歌的調式。"
+  },
+  {
+    "id": "funk-garage",
+    "title": "Funk 與 UK Garage：都是切分，差在哪？",
+    "category": "節奏與曲風",
+    "tags": [
+      "Funk",
+      "UK Garage",
+      "Groove"
+    ],
+    "summary": "拆解鼓與 Bass 的關係、Backbeat、2-step 與 Swing，而不是只看是否切分。",
+    "body": "Funk 常見重點：以 Bass、鼓、吉他或鍵盤之間的重音互補與 pocket 建立推進感；切分可以很強，但留白一樣重要。\nUK Garage 常見重點：2-step 鼓型、Shuffle / Swing、彈性 Bass、較破碎的 Kick / Snare 配置。\n\n在 Studio One 的 A/B 練習：\n1. 固定相同 Bass 和和弦循環，BPM 先不變。\n2. 版本 A：做清楚的 Backbeat，加 Bass／鍵盤問答式切分。\n3. 版本 B：改成 2-step 鼓型、加 Swing 和不同 Hi-hat 位置。\n4. 比較是誰帶動身體律動，以及哪些空隙讓樂器更有存在感。\n\n這是辨認常見特徵的方法，不是每首歌都符合固定模板。"
+  },
+  {
+    "id": "acid-jazz-warm-keys",
+    "title": "Acid Jazz 與 Funk：溫暖鍵盤、Bass 和鼓的搭配",
+    "category": "編曲與歌曲分析",
+    "tags": [
+      "Acid Jazz",
+      "Rhodes",
+      "Funk"
+    ],
+    "summary": "從四軌 Loop 出發：Rhodes、Synth、Bass、Drum，先讓律動與和聲呼吸。",
+    "body": "最小可行的四軌：Rhodes 和聲、Synth 旋律、Bass、Drum。\n\n1｜選一組有延伸色彩的和弦（maj7、m7、9 或 add9 依曲調使用）。\n2｜讓 Bass 與 Kick 對話；若某一拍 Bass 切分突出，其他樂器不需要全部加重音。\n3｜讓 Rhodes 保持溫暖、留出旋律音域；多嘗試短音與音量包絡。\n4｜以 8 小節為單位，讓第 4 或第 8 小節有一次細節變化。\n\n練習成果：在 Studio One 匯出 8 小節比較版，記錄你認為哪些地方更像 Acid Jazz、哪些只是 Funk 元素。"
+  },
+  {
+    "id": "sidechain-volume-pan",
+    "title": "混音基礎：Sidechain、音量平衡、Pan 與 Reverb",
+    "category": "混音與音色",
+    "tags": [
+      "Mixing",
+      "Sidechain",
+      "Studio One"
+    ],
+    "summary": "從聽得清楚開始，不把固定 dB 值當作每首作品通用的規則。",
+    "body": "Sidechain：在 Kick 發聲時使 Bass 短暫下降，目的是騰出重音與低頻空間。2–4 dB Gain Reduction 可作為練習起點，不是標準答案。\n音量：先關閉 Master 限幅，分別確認 Drum、Bass、和聲、Lead 的相對位置。\nPan：先讓 Kick、主要低頻、主旋律有穩定的重心，再分配背景樂器寬度。\nReverb：用 Send 管理空間層次，注意尾音是否遮住下一拍。\nAutomation：讓段落交接、尾音延長、淡出都服務於音樂，不是為了加效果而加。\n\n練習：做一次 A/B——只開關 Bass 的 Sidechain，音量匹配後比較是否更清楚。"
+  },
+  {
+    "id": "music-practice-log",
+    "title": "20 分鐘音樂製作練習法",
+    "category": "其他",
+    "tags": [
+      "Practice",
+      "Studio One"
+    ],
+    "summary": "小目標、實際操作、回聽與紀錄，讓知識能回到作品中。",
+    "body": "5 分鐘：聆聽參考歌曲的一個音色或 Groove，說出你要模仿的特徵。\n10 分鐘：在 Studio One + Vital 完成一個小練習，不要同時調太多參數。\n5 分鐘：匯出 A/B，寫下成功的改變和最想改善的一點。\n\n把影片連結、Preset 名稱、BPM、Key、截圖或心得記在『個人知識筆記』。如果是日常練習，另記錄在『練習日誌』。\n\n注意：個人資料目前保存在瀏覽器 localStorage，請定期匯出 JSON 備份。"
+  }
+]
