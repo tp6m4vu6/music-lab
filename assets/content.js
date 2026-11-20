@@ -80,6 +80,9 @@ const MIX=[
 // All four-beat chords are examples, not transcriptions of named copyrighted works.
 const PROGRESSION_PRESETS=[
  {id:'pop-1564',name:'萬用流行｜1–5–6–4',genre:'Pop / K-pop',tonality:'major',desc:'穩定、明亮又帶一點情緒；常見於流行歌主歌與副歌。',steps:[[0,'maj','I'],[7,'maj','V'],[9,'min','vi'],[5,'maj','IV']]},
+ {id:'jpop-oudou',name:'王道進行｜4–5–3–6',genre:'J-pop / Anime / K-pop',tonality:'major',desc:'J-pop 經典 4536：IV → V → iii → vi。C 大調是 F → G → Em → Am，先明亮再帶出淡淡感傷。可與原有 City Pop 的七和弦版本比較。',steps:[[5,'maj','IV'],[7,'maj','V'],[4,'min','iii'],[9,'min','vi']]},
+ {id:'marusa-full',name:'丸サ進行｜完整版',genre:'J-pop / Acid Jazz / Soul',tonality:'major',desc:'IVmaj7 → III7 → vi7 → v7 → I7。C 大調：Fmaj7 → E7 → Am7 → Gm7 → C7。最後 Gm7、C7 各半小節，構成回到 Fmaj7 的 ii–V。',steps:[[5,'maj7','IVmaj7'],[4,'7','III7'],[9,'m7','vi7'],[7,'m7','v7',2],[0,'7','I7',2]]},
+ {id:'marusa-short',name:'丸サ進行｜四和弦版',genre:'J-pop / Soul / City Pop',tonality:'major',desc:'精簡版 IVmaj7 → III7 → vi7 → I7。C 大調：Fmaj7 → E7 → Am7 → C7。E7 是通往 Am 的次屬和弦，C7 則把和聲帶回 Fmaj7。',steps:[[5,'maj7','IVmaj7'],[4,'7','III7'],[9,'m7','vi7'],[0,'7','I7']]},
  {id:'pop-6415',name:'抒情流行｜6–4–1–5',genre:'Ballad / Pop',tonality:'major',desc:'先從相對小調開始，情緒較內斂，再回到大調的穩定感。',steps:[[9,'min','vi'],[5,'maj','IV'],[0,'maj','I'],[7,'maj','V']]},
  {id:'oldies-1645',name:'經典老歌｜1–6–4–5',genre:'Oldies / Doo-wop',tonality:'major',desc:'1950 年代流行歌常見的四和弦循環，和聲感清楚、容易記憶。',steps:[[0,'maj','I'],[9,'min','vi'],[5,'maj','IV'],[7,'maj','V']]},
  {id:'canon-1563',name:'卡農式循環｜1–5–6–3–4–1–4–5',genre:'Classical / Pop',tonality:'major',desc:'類似卡農常用的低音級數運動，適合鋼琴與弦樂練習。',steps:[[0,'maj','I'],[7,'maj','V'],[9,'min','vi'],[4,'min','iii'],[5,'maj','IV'],[0,'maj','I'],[5,'maj','IV'],[7,'maj','V']]},

@@ -163,9 +163,13 @@ function renderProgressionChords(){
  document.getElementById('progressionTitle').textContent=preset.name;
  document.getElementById('progressionKeyBadge').textContent=progressionTonicName(preset)+(preset.tonality==='minor'?' minor':' major');
  document.getElementById('progressionDescription').textContent=preset.desc;
+ let elapsedBeats=0;
  document.getElementById('progressionChords').innerHTML=preset.steps.map((s,i)=>{
- const c=progressionChord(i);
- return `<button class="progression-chord ${i===progressionStep?'current':''}" data-preview-chord="${i}" aria-label="試聽第 ${i+1} 個和弦 ${escapeHtml(c.name)}"><span class="pc-step">BAR ${i+1}</span><strong>${escapeHtml(c.name)}</strong><small>${escapeHtml(c.roman)}</small></button>`
+  const c=progressionChord(i),beats=s[3]||4;
+  const bar=Math.floor(elapsedBeats/4)+1,firstBeat=elapsedBeats%4+1;
+  const location=beats===4?'BAR '+bar:'BAR '+bar+' · '+firstBeat+'–'+(firstBeat+beats-1)+' 拍';
+  elapsedBeats+=beats;
+  return `<button class="progression-chord ${i===progressionStep?'current':''}" data-preview-chord="${i}" aria-label="試聽第 ${i+1} 個和弦 ${escapeHtml(c.name)}"><span class="pc-step">${escapeHtml(location)}</span><strong>${escapeHtml(c.name)}</strong><small>${escapeHtml(c.roman)}</small></button>`;
  }).join('');
  document.getElementById('instrumentNote').textContent=currentProgressionInstrument().tip;
 }
@@ -218,15 +222,18 @@ function scheduleProgressionChord(index,start,duration){
 }
 function addProgressionTimer(fn,delay){progressionTimers.push(setTimeout(fn,Math.max(0,delay)))}
 function scheduleProgressionRound(token){
- const preset=currentProgression(),beat=60/activeProgressionTempo,bar=4*beat;
+ const preset=currentProgression(),beat=60/activeProgressionTempo;
  const start=audioCtx.currentTime+.075;
+ let elapsedBeats=0;
  preset.steps.forEach((step,i)=>{
-  scheduleProgressionChord(i,start+i*bar,bar);
+  const beats=step[3]||4,onset=start+elapsedBeats*beat;
+  scheduleProgressionChord(i,onset,beats*beat);
   addProgressionTimer(()=>{
    if(token!==progressionGeneration)return;
    progressionStep=i;renderProgressionChords();
    document.getElementById('progressionStatus').textContent=`播放中 · ${i+1}/${preset.steps.length} · ${progressionChord(i).name}`;
-  },(start+i*bar-audioCtx.currentTime)*1000);
+  },(onset-audioCtx.currentTime)*1000);
+  elapsedBeats+=beats;
  });
  addProgressionTimer(()=>{
   if(token!==progressionGeneration)return;
@@ -236,7 +243,7 @@ function scheduleProgressionRound(token){
    document.getElementById('progressionStatus').textContent='播放完成';
    document.getElementById('progressionPlay').disabled=false;
   }
- },(start+preset.steps.length*bar-audioCtx.currentTime)*1000+25);
+ },(start+elapsedBeats*beat-audioCtx.currentTime)*1000+25);
 }
 function startProgression(){
  stopAudio();
