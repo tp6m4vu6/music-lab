@@ -1,14 +1,22 @@
 const CATEGORIES=['樂理與調式','合成器教學','節奏與曲風','編曲與歌曲分析','混音與音色','插件與資源','其他'];
 const routeCategories={theory:'樂理與調式',synth:'合成器教學',groove:'節奏與曲風',arrangement:'編曲與歌曲分析',mix:'混音與音色',resources:'插件與資源'};
 const modules=[['theory','♬','樂理與調式','調式亮暗、和弦、次屬與 Voice Leading'],['synth','▥','合成器教學','音色製作教學與 Serum → Vital 對照，共用一個入口'],['groove','◉','節奏與曲風','Funk、Acid Jazz、UK Garage 與切分'],['arrangement','▦','編曲與歌曲分析','歌曲結構、K-pop 音色拆解、Loop'],['mix','≋','混音與音色','EQ、音量、Pan、Reverb、Sidechain'],['resources','↗','插件與資源','免費工具、教學、Preset 與收藏'],['articles','▤','主題教材','GitHub 內容管理：K-pop、樂理與合成器教學']];
+const ROOT_OPTIONS=[
+ {pc:0,label:'C',names:['C']},{pc:1,label:'C♯ / D♭',names:['D♭','C♯']},
+ {pc:2,label:'D',names:['D']},{pc:3,label:'D♯ / E♭',names:['E♭','D♯']},
+ {pc:4,label:'E',names:['E']},{pc:5,label:'F',names:['F']},
+ {pc:6,label:'F♯ / G♭',names:['F♯','G♭']},{pc:7,label:'G',names:['G']},
+ {pc:8,label:'G♯ / A♭',names:['A♭','G♯']},{pc:9,label:'A',names:['A']},
+ {pc:10,label:'A♯ / B♭',names:['B♭','A♯']},{pc:11,label:'B',names:['B']}
+];
 const MODES=[
- {name:'Lydian',notes:[0,2,4,6,7,9,11],scale:['C','D','E','F♯','G','A','B'],chord:'Cmaj7',desc:'明亮、漂浮；與 Ionian 相比，升高第 4 音 F → F♯。',formula:'1 · 2 · 3 · ♯4 · 5 · 6 · 7',degrees:'C · E · G · B'},
- {name:'Ionian',notes:[0,2,4,5,7,9,11],scale:['C','D','E','F','G','A','B'],chord:'Cmaj7',desc:'大調基準；清楚、明亮，適合當作其他調式的比較基準。',formula:'1 · 2 · 3 · 4 · 5 · 6 · 7',degrees:'C · E · G · B'},
- {name:'Mixolydian',notes:[0,2,4,5,7,9,10],scale:['C','D','E','F','G','A','B♭'],chord:'C7',desc:'大調骨架但有 ♭7；常可聽到 Blues、Funk、Rock 色彩。',formula:'1 · 2 · 3 · 4 · 5 · 6 · ♭7',degrees:'C · E · G · B♭'},
- {name:'Dorian',notes:[0,2,3,5,7,9,10],scale:['C','D','E♭','F','G','A','B♭'],chord:'Cm7',desc:'小調基底保留 E♭，第 6 音是 A；對照 Aeolian 的 A♭ → A。',formula:'1 · 2 · ♭3 · 4 · 5 · 6 · ♭7',degrees:'C · E♭ · G · B♭'},
- {name:'Aeolian',notes:[0,2,3,5,7,8,10],scale:['C','D','E♭','F','G','A♭','B♭'],chord:'Cm7',desc:'自然小調基準；與 Dorian 比，第 6 音降低為 A♭。',formula:'1 · 2 · ♭3 · 4 · 5 · ♭6 · ♭7',degrees:'C · E♭ · G · B♭'},
- {name:'Phrygian',notes:[0,1,3,5,7,8,10],scale:['C','D♭','E♭','F','G','A♭','B♭'],chord:'Cm7',desc:'強烈的 ♭2 是重要特色；與 Aeolian 比 D → D♭。',formula:'1 · ♭2 · ♭3 · 4 · 5 · ♭6 · ♭7',degrees:'C · E♭ · G · B♭'},
- {name:'Locrian',notes:[0,1,3,5,6,8,10],scale:['C','D♭','E♭','F','G♭','A♭','B♭'],chord:'Cm7♭5',desc:'根音上方是減五度 G♭，穩定感較低；不是常見流行樂主調。',formula:'1 · ♭2 · ♭3 · 4 · ♭5 · ♭6 · ♭7',degrees:'C · E♭ · G♭ · B♭'}
+ {name:'Lydian',notes:[0,2,4,6,7,9,11],scale:['C','D','E','F♯','G','A','B'],chord:'Cmaj7',desc:'明亮、帶有漂浮感；第 4 音升高半音（♯4）是主要特色。',formula:'1 · 2 · 3 · ♯4 · 5 · 6 · 7',degrees:'C · E · G · B'},
+ {name:'Ionian',notes:[0,2,4,5,7,9,11],scale:['C','D','E','F','G','A','B'],chord:'Cmaj7',desc:'自然大調的標準音階，是比較其他調式的明亮基準。',formula:'1 · 2 · 3 · 4 · 5 · 6 · 7',degrees:'C · E · G · B'},
+ {name:'Mixolydian',notes:[0,2,4,5,7,9,10],scale:['C','D','E','F','G','A','B♭'],chord:'C7',desc:'大調骨架搭配降低的第 7 音（♭7），常見於 Funk、Blues、Rock。',formula:'1 · 2 · 3 · 4 · 5 · 6 · ♭7',degrees:'C · E · G · B♭'},
+ {name:'Dorian',notes:[0,2,3,5,7,9,10],scale:['C','D','E♭','F','G','A','B♭'],chord:'Cm7',desc:'小調色彩保留自然第 6 音（6），比自然小調更明亮。',formula:'1 · 2 · ♭3 · 4 · 5 · 6 · ♭7',degrees:'C · E♭ · G · B♭'},
+ {name:'Aeolian',notes:[0,2,3,5,7,8,10],scale:['C','D','E♭','F','G','A♭','B♭'],chord:'Cm7',desc:'自然小調的典型色彩，第 6 與第 7 音都降低。',formula:'1 · 2 · ♭3 · 4 · 5 · ♭6 · ♭7',degrees:'C · E♭ · G · B♭'},
+ {name:'Phrygian',notes:[0,1,3,5,7,8,10],scale:['C','D♭','E♭','F','G','A♭','B♭'],chord:'Cm7',desc:'強烈的降低第 2 音（♭2）帶來特殊張力。',formula:'1 · ♭2 · ♭3 · 4 · 5 · ♭6 · ♭7',degrees:'C · E♭ · G · B♭'},
+ {name:'Locrian',notes:[0,1,3,5,6,8,10],scale:['C','D♭','E♭','F','G♭','A♭','B♭'],chord:'Cm7♭5',desc:'降低第 2 音與第 5 音（♭2、♭5），帶有不穩定、緊張的色彩。',formula:'1 · ♭2 · ♭3 · 4 · ♭5 · ♭6 · ♭7',degrees:'C · E♭ · G♭ · B♭'}
 ];
 const SYNTH={
  '振盪器 OSC':[

@@ -19,7 +19,7 @@ async function loadArticles(){
   }catch(e){document.getElementById('articleStatus').textContent='尚未載入 JSON 教材。請用 GitHub Pages 或啟動本機 HTTP 伺服器開啟（file:// 模式無法可靠讀取 JSON）。';}
 }
 const STORE='music_lab_knowledge_v2';
-const state={notes:[],practices:[]};let activeView='home',activeMode=3,activeSynthTab='振盪器 OSC',activeNoteFilter='全部',searchTerm='',audioCtx=null,activeNodes=[];
+const state={notes:[],practices:[]};let activeView='home',activeMode=3,activeRoot=0,activeSynthTab='振盪器 OSC',activeNoteFilter='全部',searchTerm='',audioCtx=null,activeNodes=[];
 function uid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeURL(url){try{const a=new URL(url);return ['http:','https:'].includes(a.protocol)?a.href:null;}catch{return null}}
@@ -46,11 +46,75 @@ function go(v){
 }
 function linkButton(url,label='查看連結'){let safe=safeURL(url);return safe?`<a class="button ghost small" href="${escapeHtml(safe)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)} ↗</a>`:''}
 function renderHome(){document.getElementById('stats').innerHTML=`<div class="card"><div class="small-label">知識分類</div><div class="stat">${modules.length}</div><p>樂理、合成器、律動、編曲、混音、資源與主題教材</p></div><div class="card"><div class="small-label">個人筆記</div><div class="stat">${state.notes.length}</div><p>可整理教學重點、音色設定、歌曲分析</p></div><div class="card"><div class="small-label">練習紀錄</div><div class="stat">${state.practices.length}</div><p>持續記下實際完成的音樂練習</p></div>`;document.getElementById('moduleGrid').innerHTML=modules.map(([id,icon,title,desc])=>`<div class="card module" role="button" tabindex="0" data-go="${id}"><div class="emoji">${icon}</div><h3>${title}</h3><p>${desc}</p><div class="go">進入知識區域　→</div></div>`).join('');}
-function renderModes(){document.getElementById('modePicker').innerHTML=MODES.map((m,i)=>`<button class="mode-button ${i===activeMode?'active':''}" data-mode="${i}">${m.name}</button>`).join('');document.getElementById('brightness').innerHTML=MODES.map((m,i)=>`<button class="${i===activeMode?'active':''}" data-mode="${i}">${i===0?'☀ ':''}${m.name}</button>`).join('');const m=MODES[activeMode];document.getElementById('modeTitle').textContent='C '+m.name;document.getElementById('modeChord').textContent=m.chord;document.getElementById('modeDesc').textContent=m.desc;document.getElementById('scaleNotes').innerHTML=m.scale.map(x=>`<span>${x}</span>`).join('');document.getElementById('modeDetails').innerHTML=`音程度數：<strong style="color:#dff6ef">${escapeHtml(m.formula)}</strong><br>主七和弦：<strong style="color:#edc88b">${escapeHtml(m.chord)} · ${escapeHtml(m.degrees)}</strong>`;renderKeyboard(m)}
-function renderKeyboard(m){const whitePc=[0,2,4,5,7,9,11,12],whiteLabel=['C','D','E','F','G','A','B','C'];const black=[{pc:1,after:1,label:'C♯'},{pc:3,after:2,label:'E♭'},{pc:6,after:4,label:'F♯'},{pc:8,after:5,label:'A♭'},{pc:10,after:6,label:'B♭'}];document.getElementById('keyboard').innerHTML=whitePc.map((n,i)=>`<div class="white-key ${m.notes.includes(n%12)?'selected':''} ${n===0||n===12?'root':''}"><span>${whiteLabel[i]}</span></div>`).join('')+black.map(x=>`<div class="black-key ${m.notes.includes(x.pc)?'selected':''}" style="left:calc(${x.after*12.5}% + ${10-20*x.after/8}px)"><span>${x.label}</span></div>`).join('')}
+function notateMode(m){
+ const root=ROOT_OPTIONS[activeRoot],letters=['C','D','E','F','G','A','B'];
+ const natural={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+ const choices=root.names.map((rootName)=>{
+  const first=letters.indexOf(rootName[0]);
+  const notes=[];let cost=0;
+  for(let i=0;i<m.notes.length;i++){
+   const letter=letters[(first+i)%7],expected=(root.pc+m.notes[i])%12;
+   let delta=(expected-natural[letter]+12)%12;if(delta>6)delta-=12;
+   const abs=Math.abs(delta);cost+=abs+20*Math.max(0,abs-1);
+   notes.push(letter+(delta>0?'♯'.repeat(delta):delta<0?'♭'.repeat(-delta):''));
+  }
+  return {rootName,notes,cost};
+ });
+ choices.sort((a,b)=>a.cost-b.cost);
+ return choices[0];
+}
+function getModeChord(m,spelled){
+ const suffix=m.notes[4]===6?'m7♭5':m.notes[2]===4?(m.notes[6]===11?'maj7':'7'):'m7';
+ return {name:spelled.rootName+suffix,tones:[spelled.notes[0],spelled.notes[2],spelled.notes[4],spelled.notes[6]]};
+}
+function renderModes(){
+ const root=ROOT_OPTIONS[activeRoot],m=MODES[activeMode],spelled=notateMode(m),chord=getModeChord(m,spelled);
+ document.getElementById('rootPicker').innerHTML=ROOT_OPTIONS.map((r,i)=>`<button type="button" class="root-button ${i===activeRoot?'active':''}" data-root="${i}" aria-pressed="${i===activeRoot}">${escapeHtml(r.label)}</button>`).join('');
+ document.getElementById('tonicDisplay').textContent=spelled.rootName;
+ document.getElementById('modePicker').innerHTML=MODES.map((x,i)=>`<button class="mode-button ${i===activeMode?'active':''}" data-mode="${i}" aria-pressed="${i===activeMode}">${escapeHtml(x.name)}</button>`).join('');
+ document.getElementById('brightness').innerHTML=MODES.map((x,i)=>`<button class="${i===activeMode?'active':''}" data-mode="${i}">${i===0?'☀ ':''}${escapeHtml(x.name)}</button>`).join('');
+ document.getElementById('modeTitle').textContent=spelled.rootName+' '+m.name;
+ document.getElementById('modeChord').textContent=chord.name;
+ document.getElementById('modeDesc').textContent=m.desc;
+ document.getElementById('scaleNotes').innerHTML=spelled.notes.map((x,i)=>`<span ${i===0?'class="tonic"':''}>${escapeHtml(x)}</span>`).join('');
+ const featureIndex={Lydian:3,Mixolydian:6,Dorian:5,Aeolian:5,Phrygian:1,Locrian:4};
+ const featureDegree={Lydian:'♯4',Mixolydian:'♭7',Dorian:'6',Aeolian:'♭6',Phrygian:'♭2',Locrian:'♭5'};
+ const feature=featureIndex[m.name]===undefined?'':`<br>特色音：<strong style="color:#71e5c5">${escapeHtml(spelled.notes[featureIndex[m.name]])}（${featureDegree[m.name]}）</strong>`;
+ document.getElementById('modeDetails').innerHTML=`音程度數：<strong style="color:#dff6ef">${escapeHtml(m.formula)}</strong>${feature}<br>主七和弦：<strong style="color:#edc88b">${escapeHtml(chord.name)} · ${escapeHtml(chord.tones.join(' · '))}</strong>`;
+ document.getElementById('playScale').textContent='▶ 聽音階＋'+spelled.rootName+' 低音';
+ renderKeyboard(m,spelled);
+}
+function renderKeyboard(m,spelled){
+ const rootMidi=60+ROOT_OPTIONS[activeRoot].pc;
+ const selected=new Map(m.notes.map((offset,i)=>[rootMidi+offset,spelled.notes[i]]));
+ selected.set(rootMidi+12,spelled.notes[0]);
+ const whites=[60,62,64,65,67,69,71,72,74,76,77,79,81,83,84];
+ const blacks=[61,63,66,68,70,73,75,78,80,82];
+ const whiteNames=['C','D','E','F','G','A','B','C','D','E','F','G','A','B','C'];
+ const standardSharps=['C♯','D♯','F♯','G♯','A♯','C♯','D♯','F♯','G♯','A♯'];
+ const white=whites.map((midi,i)=>`<div class="white-key ${selected.has(midi)?'selected':''} ${midi===rootMidi||midi===rootMidi+12?'root':''}" title="${escapeHtml(selected.get(midi)||whiteNames[i])}"><span>${escapeHtml(selected.get(midi)||whiteNames[i])}</span></div>`).join('');
+ const black=blacks.map((midi,i)=>{
+  const left=100*(whites.filter(x=>x<midi).length/whites.length);
+  const keyName=selected.get(midi)||standardSharps[i];
+  return `<div class="black-key ${selected.has(midi)?'selected':''} ${midi===rootMidi||midi===rootMidi+12?'root':''}" style="left:${left.toFixed(4)}%" title="${escapeHtml(keyName)}"><span>${escapeHtml(keyName)}</span></div>`;
+ }).join('');
+ document.getElementById('keyboard').innerHTML=`<div class="keyboard-range">${white}${black}</div>`;
+}
 function stopAudio(){activeNodes.forEach(x=>{try{x.stop()}catch{}});activeNodes=[]}
 function noteTone(midi,start,duration=.32,type='triangle',gain=.075){const ctx=audioCtx;const f=440*Math.pow(2,(midi-69)/12);const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,start);g.gain.linearRampToValueAtTime(gain,start+.012);g.gain.setTargetAtTime(0,start+Math.max(.07,duration-.09),.045);o.connect(g);g.connect(ctx.destination);o.start(start);o.stop(start+duration+.18);activeNodes.push(o);o.onended=()=>{activeNodes=activeNodes.filter(n=>n!==o)}}
-function play(kind){stopAudio();try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();audioCtx.resume();const m=MODES[activeMode],t=audioCtx.currentTime+.06;if(kind==='scale'){noteTone(48,t,3.2,'sine',.032);[...m.notes,12].forEach((n,i)=>noteTone(60+n,t+i*.31,.27,'triangle',.095));}else{const root=[0,3,7,11];let pcs= m.chord==='Cm7♭5'?[0,3,6,10]:m.chord==='C7'?[0,4,7,10]:m.chord==='Cmaj7'?[0,4,7,11]:[0,3,7,10];pcs.forEach((n,i)=>noteTone(60+n,t+i*.03,1.6,'triangle',.06));}}catch(e){toast('目前瀏覽器無法播放 Web Audio')}}
+function play(kind){
+ stopAudio();
+ try{
+  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();audioCtx.resume();
+  const m=MODES[activeMode],t=audioCtx.currentTime+.06,rootMidi=60+ROOT_OPTIONS[activeRoot].pc;
+  if(kind==='scale'){
+   noteTone(rootMidi-12,t,3.2,'sine',.032);
+   [...m.notes,12].forEach((offset,i)=>noteTone(rootMidi+offset,t+i*.31,.27,'triangle',.095));
+  }else{
+   [m.notes[0],m.notes[2],m.notes[4],m.notes[6]].forEach((offset,i)=>noteTone(rootMidi+offset,t+i*.03,1.6,'triangle',.06));
+  }
+ }catch(e){toast('目前瀏覽器無法播放 Web Audio')}
+}
 function renderSynthMaps(){
  const legend=document.getElementById('synthLegend');
  legend.innerHTML=Object.keys(SYNTH_META).map(key=>{const m=SYNTH_META[key];return `<div class="synth-legend-item"><span class="synth-icon ${m.color}" aria-hidden="true">${m.symbol}</span><strong>${escapeHtml(key)}</strong></div>`}).join('');
@@ -83,7 +147,7 @@ function importData(file){const reader=new FileReader();reader.onload=()=>{try{c
 const searchable=[{title:'Serum → Vital 對照',desc:'合成器功能對應、介面區塊圖、OSC Filter LFO FX',view:'synth',synthPanel:'reference'},...modules.map(x=>({title:x[2],desc:x[3],view:x[0]})),...Object.entries(SYNTH).flatMap(([t,items])=>items.map(x=>({title:x[0]+' → '+x[1],desc:x[2]+' '+t,view:'synth',synthPanel:'reference',synthTab:t}))),...MODES.map(m=>({title:'C '+m.name,desc:m.desc+' '+m.formula,view:'theory'})),...GROOVES.map(x=>({title:x.name,desc:x.desc,view:'groove'})),...RECIPES.map(x=>({title:x.title,desc:x.desc,view:'synth'})),...RESOURCES.map(x=>({title:x[0],desc:x[1],view:'resources'}))];
 function doSearch(q){searchTerm=q.trim();if(!searchTerm){go('home');return}const s=searchTerm.toLocaleLowerCase(),staticItems=[...searchable,...articles.map(a=>({title:a.title,desc:a.summary||'',view:'articles',articleId:a.id}))].filter(x=>(x.title+' '+x.desc).toLocaleLowerCase().includes(s)),personal=state.notes.filter(x=>(x.title+' '+x.content+' '+x.tags+' '+x.category).toLocaleLowerCase().includes(s));document.getElementById('searchHeading').textContent=`「${searchTerm}」的搜尋結果`;document.getElementById('searchResults').innerHTML=staticItems.map((x,i)=>`<div class="search-result" data-search-index="${i}"><strong>${escapeHtml(x.title)}</strong><small>${escapeHtml(x.desc.slice(0,130))}</small></div>`).join('')+personal.map(n=>`<div class="search-result" data-search-note="${escapeHtml(n.id)}"><strong>✎ ${escapeHtml(n.title)}</strong><small>${escapeHtml(n.category)} · ${escapeHtml((n.content||'').slice(0,130))}</small></div>`).join('')||'<div class="empty">沒有符合的內容，試試其他關鍵字。</div>';window.currentSearchItems=staticItems;go('search')}
 function closeModal(){document.getElementById('modalRoot').innerHTML=''}
-document.addEventListener('click',e=>{const el=e.target.closest('button,[data-go],[data-mode],[data-recipe],[data-note-filter],[data-edit-note],[data-delete-note],[data-delete-practice],[data-search-index],[data-search-note],[data-open-article],[data-save-article]');if(!el)return;if(el.dataset.view)go(el.dataset.view);if(el.dataset.go)go(el.dataset.go);if(el.dataset.synthPanel){if(activeView!=='synth')go('synth');setSynthPanel(el.dataset.synthPanel)}if(el.dataset.mode!==undefined){activeMode=Number(el.dataset.mode);renderModes()}if(el.dataset.synthTab){activeSynthTab=el.dataset.synthTab;renderSynth()}if(el.dataset.recipe)showRecipe(Number(el.dataset.recipe));if(el.dataset.noteFilter){activeNoteFilter=el.dataset.noteFilter;renderNotes()}if(el.dataset.editNote){const n=state.notes.find(x=>x.id===el.dataset.editNote);if(n)openNote(n.category,'',n.id)}if(el.dataset.deleteNote)deleteNote(el.dataset.deleteNote);if(el.dataset.deletePractice&&confirm('要刪除這筆練習紀錄嗎？')){state.practices=state.practices.filter(x=>x.id!==el.dataset.deletePractice);saveStore();renderPractices();renderHome()}if(el.dataset.openArticle){go('articles');showArticle(el.dataset.openArticle)}if(el.dataset.saveArticle){const a=articles.find(x=>x.id===el.dataset.saveArticle);if(a)openNote(a.category,a.title)}if(el.dataset.searchIndex!==undefined){const item=window.currentSearchItems?.[Number(el.dataset.searchIndex)];if(item){if(item.synthTab)activeSynthTab=item.synthTab;renderSynth();go(item.view);if(item.synthPanel)setSynthPanel(item.synthPanel);if(item.articleId)showArticle(item.articleId)}}if(el.dataset.searchNote){const n=state.notes.find(x=>x.id===el.dataset.searchNote);if(n)openNote(n.category,'',n.id)}});
+document.addEventListener('click',e=>{const el=e.target.closest('button,[data-go],[data-mode],[data-recipe],[data-note-filter],[data-edit-note],[data-delete-note],[data-delete-practice],[data-search-index],[data-search-note],[data-open-article],[data-save-article]');if(!el)return;if(el.dataset.view)go(el.dataset.view);if(el.dataset.go)go(el.dataset.go);if(el.dataset.synthPanel){if(activeView!=='synth')go('synth');setSynthPanel(el.dataset.synthPanel)}if(el.dataset.mode!==undefined){activeMode=Number(el.dataset.mode);stopAudio();renderModes()}if(el.dataset.root!==undefined){activeRoot=Number(el.dataset.root);stopAudio();renderModes()}if(el.dataset.synthTab){activeSynthTab=el.dataset.synthTab;renderSynth()}if(el.dataset.recipe)showRecipe(Number(el.dataset.recipe));if(el.dataset.noteFilter){activeNoteFilter=el.dataset.noteFilter;renderNotes()}if(el.dataset.editNote){const n=state.notes.find(x=>x.id===el.dataset.editNote);if(n)openNote(n.category,'',n.id)}if(el.dataset.deleteNote)deleteNote(el.dataset.deleteNote);if(el.dataset.deletePractice&&confirm('要刪除這筆練習紀錄嗎？')){state.practices=state.practices.filter(x=>x.id!==el.dataset.deletePractice);saveStore();renderPractices();renderHome()}if(el.dataset.openArticle){go('articles');showArticle(el.dataset.openArticle)}if(el.dataset.saveArticle){const a=articles.find(x=>x.id===el.dataset.saveArticle);if(a)openNote(a.category,a.title)}if(el.dataset.searchIndex!==undefined){const item=window.currentSearchItems?.[Number(el.dataset.searchIndex)];if(item){if(item.synthTab)activeSynthTab=item.synthTab;renderSynth();go(item.view);if(item.synthPanel)setSynthPanel(item.synthPanel);if(item.articleId)showArticle(item.articleId)}}if(el.dataset.searchNote){const n=state.notes.find(x=>x.id===el.dataset.searchNote);if(n)openNote(n.category,'',n.id)}});
 document.addEventListener('keydown',e=>{const el=e.target.closest('[data-go]');if(el&&(e.key==='Enter'||e.key===' ')){e.preventDefault();go(el.dataset.go)}if(e.key==='Escape')closeModal()});
 document.getElementById('modalRoot').addEventListener('click',e=>{if(e.target.hasAttribute('data-close'))closeModal()});document.getElementById('modalRoot').addEventListener('submit',e=>{e.preventDefault();if(e.target.getAttribute('id')==='noteForm')saveNote(e.target);if(e.target.getAttribute('id')==='practiceForm')savePractice(e.target)});
 document.getElementById('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch(e.target.value)});document.getElementById('globalSearch').addEventListener('input',e=>{if(!e.target.value.trim()&&activeView==='search')go('home')});
