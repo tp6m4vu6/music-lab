@@ -14,6 +14,7 @@
  <div><div class="nav-cap">KNOWLEDGE HUB</div><nav class="nav" id="nav">
  <button data-view="home" class="active"><span class="ico">◈</span><span class="word">總覽首頁</span></button>
  <button data-view="theory"><span class="ico">♬</span><span class="word">樂理與調式</span></button>
+ <button data-view="progressions"><span class="ico">♫</span><span class="word">和弦進行</span></button>
  <button data-view="synth"><span class="ico">▥</span><span class="word">合成器教學</span></button>
  <button data-view="groove"><span class="ico">◉</span><span class="word">節奏與曲風</span></button>
  <button data-view="arrangement"><span class="ico">▦</span><span class="word">編曲與歌曲分析</span></button>
@@ -46,8 +47,51 @@
   <div class="mode-top"><div><span class="small-label">INTERACTIVE KEYBOARD · 選擇調式</span><h3 id="modeTitle">C Dorian</h3><div id="modeDesc" class="text-explain"></div></div><span id="modeChord" class="chip mint">Cm7</span></div>
   <div class="modepicker" id="modePicker"></div><div class="keyboard" id="keyboard" aria-label="兩個八度的鋼琴鍵盤，會顯示選定主音及調式音階"></div><div class="keylist" id="scaleNotes"></div><p class="keyboard-hint">鍵盤固定顯示 C4–C6；金色是主音，綠色是目前調式音階。可左右捲動查看。</p><div class="panel"><div class="text-explain" id="modeDetails"></div><div class="pills"><button class="button small" id="playScale">▶ 聽音階＋主音低音</button><button class="button ghost small" id="playChord">♫ 聽主七和弦</button><button class="button subtle small" id="stopAudio">■ 停止</button></div></div></div>
   <div class="section-head"><h2>調式亮暗排序</h2></div><div class="card"><p class="text-explain">從較明亮到較暗：一個調式不只由單一音決定，必須聽主音與整段音樂形成的調性中心。</p><div class="brightness" id="brightness"></div></div>
-  <div class="section-head"><h2>和聲學習索引</h2></div><div class="grid two"><div class="card"><div class="chips"><span class="chip mint">基礎</span></div><h3>和弦與功能</h3><p>三和弦／七和弦、調內和弦、級數、主屬功能、轉位與 Voice Leading。</p><div class="dim text-explain">例如：Em → C → G → D，可先確認每個和弦組成音，再比較聲部之間的最近移動。</div></div><div class="card"><div class="chips"><span class="chip gold">進階</span></div><h3>和聲色彩</h3><p>次屬和弦、Modal Interchange、add9、sus4、延伸和弦與轉調。</p><div class="dim text-explain">例如：在 A 大調中 F♯7 → Bm 是 V7/ii → ii，注意 A♯ → B 的導向。</div></div></div>
+  <div class="section-head"><h2>和聲學習索引</h2></div><div class="callout">想實際聽聽和弦怎麼連接？<button class="inline-action" data-go="progressions">開啟和弦進行實驗室 →</button>，比較不同主音、樂器與速度。</div><div class="grid two"><div class="card"><div class="chips"><span class="chip mint">基礎</span></div><h3>和弦與功能</h3><p>三和弦／七和弦、調內和弦、級數、主屬功能、轉位與 Voice Leading。</p><div class="dim text-explain">例如：Em → C → G → D，可先確認每個和弦組成音，再比較聲部之間的最近移動。</div></div><div class="card"><div class="chips"><span class="chip gold">進階</span></div><h3>和聲色彩</h3><p>次屬和弦、Modal Interchange、add9、sus4、延伸和弦與轉調。</p><div class="dim text-explain">例如：在 A 大調中 F♯7 → Bm 是 V7/ii → ii，注意 A♯ → B 的導向。</div></div></div>
  </section>
+ 
+ <section id="view-progressions" class="view">
+  <div class="section-head"><div><div class="eyebrow">CHORD PROGRESSION LAB</div><h2>和弦進行實驗室</h2>
+   <p>挑選經典和弦進行，變換主音與 BPM，再用不同樂器音色聽出和聲氛圍。</p></div>
+   <button class="button ghost small" onclick="openNote('樂理與調式')">＋ 記錄和聲靈感</button>
+  </div>
+  <div class="callout">和弦進行是常見的<strong>和聲語法</strong>，不是某首歌的專屬編曲。下方聲音由瀏覽器即時合成，可用來比較音色，但<strong>不是 Studio One 樂器插件或真實取樣</strong>。</div>
+  <div class="progression-layout">
+   <div class="card progression-presets">
+    <div class="progression-card-top"><div><span class="small-label">CLASSIC PROGRESSIONS</span><h3>選一組經典進行</h3></div><span id="progressionCount" class="chip mint"></span></div>
+    <div id="progressionChoices" class="progression-choice-list"></div>
+   </div>
+   <div class="progression-main">
+    <div class="card">
+     <div class="progression-card-top"><div><span class="small-label">PLAYER SETTINGS</span><h3>試聽設定</h3></div><span class="chip">每個和弦 1 小節 · 4/4</span></div>
+     <div class="progression-config">
+      <label>主音／調性<select id="progressionKey" aria-label="和弦進行主音"></select></label>
+      <label>樂器音色<select id="progressionInstrument" aria-label="和弦進行樂器音色"></select></label>
+      <label class="progression-tempo-label">速度 <strong id="progressionTempoValue">96 BPM</strong><input type="range" id="progressionTempo" min="55" max="180" step="1" value="96" aria-label="和弦進行速度"></label>
+      <label class="progression-repeat"><input type="checkbox" id="progressionLoop"> 循環播放</label>
+     </div>
+     <div class="progression-player-buttons">
+      <button class="button" id="progressionPlay">▶ 播放和弦進行</button>
+      <button class="button subtle" id="progressionStop">■ 停止</button>
+      <span id="progressionStatus" class="progression-status" aria-live="polite">準備播放</span>
+     </div>
+     <div class="instrument-note" id="instrumentNote"></div>
+    </div>
+    <div class="card">
+     <div class="progression-card-top"><div><span class="small-label">ROMAN NUMERALS · CHORDS</span><h3 id="progressionTitle">和弦進行</h3></div><span id="progressionKeyBadge" class="chip mint">C Major</span></div>
+     <p id="progressionDescription" class="text-explain"></p>
+     <div id="progressionChords" class="progression-chord-grid"></div>
+     <p class="progression-tip">點擊任一和弦可單獨試聽。播放時會依序標示目前和弦。</p>
+    </div>
+    <div class="card">
+     <span class="small-label">PRACTICE WITH STUDIO ONE</span>
+     <h3>把和弦進行放進自己的作品</h3>
+     <p>先用鋼琴確認和聲方向，再切換電鋼琴、弦樂或 Synth Pad，比較相同和弦進行如何呈現不同曲風。可以在 Studio One 用一小節一個和弦重建。</p>
+    </div>
+   </div>
+  </div>
+ </section>
+
  <section id="view-synth" class="view">
  <div class="section-head"><div><div class="eyebrow">SOUND DESIGN</div><h2>合成器教學</h2><p>用 Vital 學習音色製作；需要跟做 Serum 教學影片時，切到參數與介面對照。</p></div><button class="button ghost small" onclick="openNote('合成器教學')">＋ 添加音色筆記</button></div>
  <div class="synth-subnav" role="tablist" aria-label="合成器教學內部分頁">

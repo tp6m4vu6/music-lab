@@ -19,7 +19,7 @@ async function loadArticles(){
   }catch(e){document.getElementById('articleStatus').textContent='尚未載入 JSON 教材。請用 GitHub Pages 或啟動本機 HTTP 伺服器開啟（file:// 模式無法可靠讀取 JSON）。';}
 }
 const STORE='music_lab_knowledge_v2';
-const state={notes:[],practices:[]};let activeView='home',activeMode=3,activeRoot=0,activeSynthTab='振盪器 OSC',activeNoteFilter='全部',searchTerm='',audioCtx=null,activeNodes=[];
+const state={notes:[],practices:[]};let activeView='home',activeMode=3,activeRoot=0,activeSynthTab='振盪器 OSC',activeNoteFilter='全部',activeProgressionId='pop-1564',activeProgressionKey=0,activeProgressionInstrument='piano',activeProgressionTempo=96,progressionLoop=false,progressionTimers=[],progressionPlaying=false,progressionStep=-1,progressionGeneration=0,searchTerm='',audioCtx=null,activeNodes=[];
 function uid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeURL(url){try{const a=new URL(url);return ['http:','https:'].includes(a.protocol)?a.href:null;}catch{return null}}
@@ -37,6 +37,7 @@ function setSynthPanel(panel){
  }
 }
 function go(v){
+ if(activeView==='progressions'&&v!=='progressions')stopAudio();
  activeView=v;
  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
  document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===v));
@@ -100,7 +101,7 @@ function renderKeyboard(m,spelled){
  }).join('');
  document.getElementById('keyboard').innerHTML=`<div class="keyboard-range">${white}${black}</div>`;
 }
-function stopAudio(){activeNodes.forEach(x=>{try{x.stop()}catch{}});activeNodes=[]}
+function stopAudio(){activeNodes.forEach(x=>{try{x.stop()}catch{}});activeNodes=[];stopProgressionTimeline()}
 function noteTone(midi,start,duration=.32,type='triangle',gain=.075){const ctx=audioCtx;const f=440*Math.pow(2,(midi-69)/12);const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,start);g.gain.linearRampToValueAtTime(gain,start+.012);g.gain.setTargetAtTime(0,start+Math.max(.07,duration-.09),.045);o.connect(g);g.connect(ctx.destination);o.start(start);o.stop(start+duration+.18);activeNodes.push(o);o.onended=()=>{activeNodes=activeNodes.filter(n=>n!==o)}}
 function play(kind){
  stopAudio();
@@ -115,6 +116,152 @@ function play(kind){
   }
  }catch(e){toast('目前瀏覽器無法播放 Web Audio')}
 }
+
+const PROGRESSION_MAJOR_NAMES=[
+ ['C','D','E','F','G','A','B'],['D♭','E♭','F','G♭','A♭','B♭','C'],
+ ['D','E','F♯','G','A','B','C♯'],['E♭','F','G','A♭','B♭','C','D'],
+ ['E','F♯','G♯','A','B','C♯','D♯'],['F','G','A','B♭','C','D','E'],
+ ['F♯','G♯','A♯','B','C♯','D♯','E♯'],['G','A','B','C','D','E','F♯'],
+ ['A♭','B♭','C','D♭','E♭','F','G'],['A','B','C♯','D','E','F♯','G♯'],
+ ['B♭','C','D','E♭','F','G','A'],['B','C♯','D♯','E','F♯','G♯','A♯']
+];
+const PROGRESSION_MINOR_NAMES=[
+ ['C','D','E♭','F','G','A♭','B♭'],['C♯','D♯','E','F♯','G♯','A','B'],
+ ['D','E','F','G','A','B♭','C'],['E♭','F','G♭','A♭','B♭','C♭','D♭'],
+ ['E','F♯','G','A','B','C','D'],['F','G','A♭','B♭','C','D♭','E♭'],
+ ['F♯','G♯','A','B','C♯','D','E'],['G','A','B♭','C','D','E♭','F'],
+ ['G♯','A♯','B','C♯','D♯','E','F♯'],['A','B','C','D','E','F','G'],
+ ['B♭','C','D♭','E♭','F','G♭','A♭'],['B','C♯','D','E','F♯','G','A']
+];
+const PROGRESSION_MAJOR_OFFSETS=[0,2,4,5,7,9,11],PROGRESSION_MINOR_OFFSETS=[0,2,3,5,7,8,10];
+const CHORD_INTERVALS={maj:[0,4,7],min:[0,3,7],maj7:[0,4,7,11],m7:[0,3,7,10],'7':[0,4,7,10],m7b5:[0,3,6,10]};
+const CHORD_SUFFIX={maj:'',min:'m',maj7:'maj7',m7:'m7','7':'7',m7b5:'m7♭5'};
+function currentProgression(){return PROGRESSION_PRESETS.find(x=>x.id===activeProgressionId)||PROGRESSION_PRESETS[0]}
+function currentProgressionInstrument(){return PROGRESSION_INSTRUMENTS.find(x=>x.id===activeProgressionInstrument)||PROGRESSION_INSTRUMENTS[0]}
+function progressionTonicName(preset){return (preset.tonality==='minor'?PROGRESSION_MINOR_NAMES:PROGRESSION_MAJOR_NAMES)[activeProgressionKey][0]}
+function progressionRootName(offset,preset){
+ const minor=preset.tonality==='minor',offsets=minor?PROGRESSION_MINOR_OFFSETS:PROGRESSION_MAJOR_OFFSETS;
+ const names=(minor?PROGRESSION_MINOR_NAMES:PROGRESSION_MAJOR_NAMES)[activeProgressionKey];
+ const i=offsets.indexOf(offset);if(i!==-1)return names[i];
+ const pc=(activeProgressionKey+offset)%12;
+ const chromatic=['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
+ const sharp=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+ const sharpKeys=[1,2,4,6,9,11];return (sharpKeys.includes(activeProgressionKey)?sharp:chromatic)[pc];
+}
+function progressionChord(index){
+ const p=currentProgression(),step=p.steps[index];if(!step)return null;
+ const [offset,quality,roman]=step;
+ return {index,offset,quality,roman,name:progressionRootName(offset,p)+(CHORD_SUFFIX[quality]||''),pitch:(activeProgressionKey+offset)%12,intervals:CHORD_INTERVALS[quality]||CHORD_INTERVALS.maj};
+}
+function renderProgressionChoices(){
+ document.getElementById('progressionCount').textContent=PROGRESSION_PRESETS.length+' 組';
+ document.getElementById('progressionChoices').innerHTML=PROGRESSION_PRESETS.map(x=>
+ `<button class="progression-choice ${x.id===activeProgressionId?'active':''}" data-progression="${escapeHtml(x.id)}" aria-pressed="${x.id===activeProgressionId}"><span class="pc-genre">${escapeHtml(x.genre)}</span><strong>${escapeHtml(x.name)}</strong><small>${escapeHtml(x.steps.map(step=>step[2]).join(' → '))}</small></button>`).join('');
+}
+function renderProgressionChords(){
+ const preset=currentProgression();
+ document.getElementById('progressionTitle').textContent=preset.name;
+ document.getElementById('progressionKeyBadge').textContent=progressionTonicName(preset)+(preset.tonality==='minor'?' minor':' major');
+ document.getElementById('progressionDescription').textContent=preset.desc;
+ document.getElementById('progressionChords').innerHTML=preset.steps.map((s,i)=>{
+ const c=progressionChord(i);
+ return `<button class="progression-chord ${i===progressionStep?'current':''}" data-preview-chord="${i}" aria-label="試聽第 ${i+1} 個和弦 ${escapeHtml(c.name)}"><span class="pc-step">BAR ${i+1}</span><strong>${escapeHtml(c.name)}</strong><small>${escapeHtml(c.roman)}</small></button>`
+ }).join('');
+ document.getElementById('instrumentNote').textContent=currentProgressionInstrument().tip;
+}
+function setupProgressions(){
+ document.getElementById('progressionKey').innerHTML=ROOT_OPTIONS.map((k,i)=>`<option value="${i}">${escapeHtml(k.label)}</option>`).join('');
+ document.getElementById('progressionInstrument').innerHTML=PROGRESSION_INSTRUMENTS.map(i=>`<option value="${i.id}">${escapeHtml(i.name)}</option>`).join('');
+ document.getElementById('progressionKey').value=String(activeProgressionKey);
+ document.getElementById('progressionInstrument').value=activeProgressionInstrument;
+ document.getElementById('progressionTempo').value=String(activeProgressionTempo);
+ document.getElementById('progressionTempoValue').textContent=activeProgressionTempo+' BPM';
+ renderProgressionChoices();renderProgressionChords();
+}
+function clearProgressionTimeline(){
+ progressionGeneration++;
+ progressionTimers.forEach(clearTimeout);progressionTimers=[];
+ progressionPlaying=false;progressionStep=-1;
+ const status=document.getElementById('progressionStatus');
+ if(status)status.textContent='已停止／準備播放';
+ const play=document.getElementById('progressionPlay');if(play)play.disabled=false;
+ document.querySelectorAll('.progression-chord.current').forEach(el=>el.classList.remove('current'));
+}
+function stopProgressionTimeline(){clearProgressionTimeline()}
+function scheduleProgressionNote(ctx,midi,t,duration,inst,levelFactor){
+ const freq=440*Math.pow(2,(midi-69)/12);
+ const attack=inst.attack,decay=inst.decay,release=inst.release;
+ // Use one envelope per note, shared by the instrument's harmonics.
+ const env=ctx.createGain(),gain=Math.max(.0001,inst.level*levelFactor);
+ env.gain.setValueAtTime(.0001,t);
+ env.gain.linearRampToValueAtTime(gain,t+attack);
+ env.gain.exponentialRampToValueAtTime(Math.max(.0001,gain*inst.sustain),t+attack+decay);
+ env.gain.setValueAtTime(Math.max(.0001,gain*inst.sustain),t+duration);
+ env.gain.exponentialRampToValueAtTime(.0001,t+duration+release);
+ const filter=inst.lowpass?ctx.createBiquadFilter():null;
+ if(filter){filter.type='lowpass';filter.frequency.value=inst.lowpass;env.connect(filter);filter.connect(ctx.destination)}
+ else env.connect(ctx.destination);
+ inst.partials.forEach(([ratio,wave,partGain])=>{
+  const osc=ctx.createOscillator(),vol=ctx.createGain();
+  osc.type=wave;osc.frequency.value=freq*ratio;vol.gain.value=partGain;
+  osc.connect(vol);vol.connect(env);osc.start(t);osc.stop(t+duration+release+.06);
+  activeNodes.push(osc);osc.onended=()=>{activeNodes=activeNodes.filter(o=>o!==osc)};
+ });
+}
+function scheduleProgressionChord(index,start,duration){
+ const ctx=audioCtx,c=progressionChord(index),inst=currentProgressionInstrument();
+ if(!c)return;
+ const chordMidis=c.intervals.map(offset=>60+c.pitch+offset);
+ // Root plus chord voicing, with moderate headroom to avoid clipping.
+ chordMidis.forEach((m,i)=>scheduleProgressionNote(ctx,m,start+((inst.id==='guitar'||inst.id==='clean')?i*.022:0),Math.max(.35,duration-.10),inst,1/Math.sqrt(chordMidis.length)));
+ scheduleProgressionNote(ctx,36+c.pitch,start,Math.max(.30,duration-.14),inst,.30);
+}
+function addProgressionTimer(fn,delay){progressionTimers.push(setTimeout(fn,Math.max(0,delay)))}
+function scheduleProgressionRound(token){
+ const preset=currentProgression(),beat=60/activeProgressionTempo,bar=4*beat;
+ const start=audioCtx.currentTime+.075;
+ preset.steps.forEach((step,i)=>{
+  scheduleProgressionChord(i,start+i*bar,bar);
+  addProgressionTimer(()=>{
+   if(token!==progressionGeneration)return;
+   progressionStep=i;renderProgressionChords();
+   document.getElementById('progressionStatus').textContent=`播放中 · ${i+1}/${preset.steps.length} · ${progressionChord(i).name}`;
+  },(start+i*bar-audioCtx.currentTime)*1000);
+ });
+ addProgressionTimer(()=>{
+  if(token!==progressionGeneration)return;
+  if(progressionLoop)scheduleProgressionRound(token);
+  else{
+   progressionPlaying=false;progressionStep=-1;renderProgressionChords();
+   document.getElementById('progressionStatus').textContent='播放完成';
+   document.getElementById('progressionPlay').disabled=false;
+  }
+ },(start+preset.steps.length*bar-audioCtx.currentTime)*1000+25);
+}
+function startProgression(){
+ stopAudio();
+ try{
+  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
+  audioCtx.resume();
+  progressionPlaying=true;
+  document.getElementById('progressionPlay').disabled=true;
+  document.getElementById('progressionStatus').textContent='開始播放…';
+  scheduleProgressionRound(progressionGeneration);
+ }catch(e){clearProgressionTimeline();toast('目前瀏覽器無法播放 Web Audio')}
+}
+function previewProgressionChord(index){
+ stopAudio();
+ try{
+  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
+  audioCtx.resume();
+  scheduleProgressionChord(index,audioCtx.currentTime+.05,1.2);
+  progressionStep=index;renderProgressionChords();
+  document.getElementById('progressionStatus').textContent='試聽 · '+progressionChord(index).name;
+  const token=progressionGeneration;
+  addProgressionTimer(()=>{if(token!==progressionGeneration)return;progressionStep=-1;renderProgressionChords();document.getElementById('progressionStatus').textContent='試聽完成';},1550);
+ }catch(e){toast('目前瀏覽器無法播放音色')}
+}
+
 function renderSynthMaps(){
  const legend=document.getElementById('synthLegend');
  legend.innerHTML=Object.keys(SYNTH_META).map(key=>{const m=SYNTH_META[key];return `<div class="synth-legend-item"><span class="synth-icon ${m.color}" aria-hidden="true">${m.symbol}</span><strong>${escapeHtml(key)}</strong></div>`}).join('');
@@ -147,9 +294,18 @@ function importData(file){const reader=new FileReader();reader.onload=()=>{try{c
 const searchable=[{title:'Serum → Vital 對照',desc:'合成器功能對應、介面區塊圖、OSC Filter LFO FX',view:'synth',synthPanel:'reference'},...modules.map(x=>({title:x[2],desc:x[3],view:x[0]})),...Object.entries(SYNTH).flatMap(([t,items])=>items.map(x=>({title:x[0]+' → '+x[1],desc:x[2]+' '+t,view:'synth',synthPanel:'reference',synthTab:t}))),...MODES.map(m=>({title:'C '+m.name,desc:m.desc+' '+m.formula,view:'theory'})),...GROOVES.map(x=>({title:x.name,desc:x.desc,view:'groove'})),...RECIPES.map(x=>({title:x.title,desc:x.desc,view:'synth'})),...RESOURCES.map(x=>({title:x[0],desc:x[1],view:'resources'}))];
 function doSearch(q){searchTerm=q.trim();if(!searchTerm){go('home');return}const s=searchTerm.toLocaleLowerCase(),staticItems=[...searchable,...articles.map(a=>({title:a.title,desc:a.summary||'',view:'articles',articleId:a.id}))].filter(x=>(x.title+' '+x.desc).toLocaleLowerCase().includes(s)),personal=state.notes.filter(x=>(x.title+' '+x.content+' '+x.tags+' '+x.category).toLocaleLowerCase().includes(s));document.getElementById('searchHeading').textContent=`「${searchTerm}」的搜尋結果`;document.getElementById('searchResults').innerHTML=staticItems.map((x,i)=>`<div class="search-result" data-search-index="${i}"><strong>${escapeHtml(x.title)}</strong><small>${escapeHtml(x.desc.slice(0,130))}</small></div>`).join('')+personal.map(n=>`<div class="search-result" data-search-note="${escapeHtml(n.id)}"><strong>✎ ${escapeHtml(n.title)}</strong><small>${escapeHtml(n.category)} · ${escapeHtml((n.content||'').slice(0,130))}</small></div>`).join('')||'<div class="empty">沒有符合的內容，試試其他關鍵字。</div>';window.currentSearchItems=staticItems;go('search')}
 function closeModal(){document.getElementById('modalRoot').innerHTML=''}
-document.addEventListener('click',e=>{const el=e.target.closest('button,[data-go],[data-mode],[data-recipe],[data-note-filter],[data-edit-note],[data-delete-note],[data-delete-practice],[data-search-index],[data-search-note],[data-open-article],[data-save-article]');if(!el)return;if(el.dataset.view)go(el.dataset.view);if(el.dataset.go)go(el.dataset.go);if(el.dataset.synthPanel){if(activeView!=='synth')go('synth');setSynthPanel(el.dataset.synthPanel)}if(el.dataset.mode!==undefined){activeMode=Number(el.dataset.mode);stopAudio();renderModes()}if(el.dataset.root!==undefined){activeRoot=Number(el.dataset.root);stopAudio();renderModes()}if(el.dataset.synthTab){activeSynthTab=el.dataset.synthTab;renderSynth()}if(el.dataset.recipe)showRecipe(Number(el.dataset.recipe));if(el.dataset.noteFilter){activeNoteFilter=el.dataset.noteFilter;renderNotes()}if(el.dataset.editNote){const n=state.notes.find(x=>x.id===el.dataset.editNote);if(n)openNote(n.category,'',n.id)}if(el.dataset.deleteNote)deleteNote(el.dataset.deleteNote);if(el.dataset.deletePractice&&confirm('要刪除這筆練習紀錄嗎？')){state.practices=state.practices.filter(x=>x.id!==el.dataset.deletePractice);saveStore();renderPractices();renderHome()}if(el.dataset.openArticle){go('articles');showArticle(el.dataset.openArticle)}if(el.dataset.saveArticle){const a=articles.find(x=>x.id===el.dataset.saveArticle);if(a)openNote(a.category,a.title)}if(el.dataset.searchIndex!==undefined){const item=window.currentSearchItems?.[Number(el.dataset.searchIndex)];if(item){if(item.synthTab)activeSynthTab=item.synthTab;renderSynth();go(item.view);if(item.synthPanel)setSynthPanel(item.synthPanel);if(item.articleId)showArticle(item.articleId)}}if(el.dataset.searchNote){const n=state.notes.find(x=>x.id===el.dataset.searchNote);if(n)openNote(n.category,'',n.id)}});
+document.addEventListener('click',e=>{const el=e.target.closest('button,[data-go],[data-mode],[data-recipe],[data-note-filter],[data-edit-note],[data-delete-note],[data-delete-practice],[data-search-index],[data-search-note],[data-open-article],[data-save-article]');if(!el)return;if(el.dataset.view)go(el.dataset.view);if(el.dataset.go)go(el.dataset.go);if(el.dataset.synthPanel){if(activeView!=='synth')go('synth');setSynthPanel(el.dataset.synthPanel)}if(el.dataset.mode!==undefined){activeMode=Number(el.dataset.mode);stopAudio();renderModes()}if(el.dataset.progression){stopAudio();activeProgressionId=el.dataset.progression;renderProgressionChoices();renderProgressionChords()}if(el.dataset.previewChord!==undefined){previewProgressionChord(Number(el.dataset.previewChord))}if(el.dataset.root!==undefined){activeRoot=Number(el.dataset.root);stopAudio();renderModes()}if(el.dataset.synthTab){activeSynthTab=el.dataset.synthTab;renderSynth()}if(el.dataset.recipe)showRecipe(Number(el.dataset.recipe));if(el.dataset.noteFilter){activeNoteFilter=el.dataset.noteFilter;renderNotes()}if(el.dataset.editNote){const n=state.notes.find(x=>x.id===el.dataset.editNote);if(n)openNote(n.category,'',n.id)}if(el.dataset.deleteNote)deleteNote(el.dataset.deleteNote);if(el.dataset.deletePractice&&confirm('要刪除這筆練習紀錄嗎？')){state.practices=state.practices.filter(x=>x.id!==el.dataset.deletePractice);saveStore();renderPractices();renderHome()}if(el.dataset.openArticle){go('articles');showArticle(el.dataset.openArticle)}if(el.dataset.saveArticle){const a=articles.find(x=>x.id===el.dataset.saveArticle);if(a)openNote(a.category,a.title)}if(el.dataset.searchIndex!==undefined){const item=window.currentSearchItems?.[Number(el.dataset.searchIndex)];if(item){if(item.synthTab)activeSynthTab=item.synthTab;renderSynth();go(item.view);if(item.synthPanel)setSynthPanel(item.synthPanel);if(item.articleId)showArticle(item.articleId)}}if(el.dataset.searchNote){const n=state.notes.find(x=>x.id===el.dataset.searchNote);if(n)openNote(n.category,'',n.id)}});
 document.addEventListener('keydown',e=>{const el=e.target.closest('[data-go]');if(el&&(e.key==='Enter'||e.key===' ')){e.preventDefault();go(el.dataset.go)}if(e.key==='Escape')closeModal()});
 document.getElementById('modalRoot').addEventListener('click',e=>{if(e.target.hasAttribute('data-close'))closeModal()});document.getElementById('modalRoot').addEventListener('submit',e=>{e.preventDefault();if(e.target.getAttribute('id')==='noteForm')saveNote(e.target);if(e.target.getAttribute('id')==='practiceForm')savePractice(e.target)});
 document.getElementById('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch(e.target.value)});document.getElementById('globalSearch').addEventListener('input',e=>{if(!e.target.value.trim()&&activeView==='search')go('home')});
-document.getElementById('newNoteTop').onclick=()=>openNote();document.getElementById('newPractice').onclick=openPractice;document.getElementById('exportData').onclick=exportData;document.getElementById('importData').onclick=()=>document.getElementById('fileInput').click();document.getElementById('fileInput').onchange=e=>{if(e.target.files?.[0])importData(e.target.files[0]);e.target.value=''};document.getElementById('playScale').onclick=()=>play('scale');document.getElementById('playChord').onclick=()=>play('chord');document.getElementById('stopAudio').onclick=stopAudio;
-readStore();loadArticles();renderHome();renderModes();renderSynth();renderGroove();renderMix();renderResources();renderNotes();renderPractices();renderSongNotes();
+document.getElementById('newNoteTop').onclick=()=>openNote();document.getElementById('newPractice').onclick=openPractice;document.getElementById('exportData').onclick=exportData;document.getElementById('importData').onclick=()=>document.getElementById('fileInput').click();document.getElementById('fileInput').onchange=e=>{if(e.target.files?.[0])importData(e.target.files[0]);e.target.value=''};document.getElementById('progressionKey').onchange=e=>{stopAudio();activeProgressionKey=Number(e.target.value);renderProgressionChords()};
+document.getElementById('progressionInstrument').onchange=e=>{stopAudio();activeProgressionInstrument=e.target.value;renderProgressionChords()};
+document.getElementById('progressionTempo').oninput=e=>{
+ activeProgressionTempo=Number(e.target.value);document.getElementById('progressionTempoValue').textContent=activeProgressionTempo+' BPM';
+ if(progressionPlaying)stopAudio();
+};
+document.getElementById('progressionLoop').onchange=e=>{progressionLoop=e.target.checked};
+document.getElementById('progressionPlay').onclick=startProgression;
+document.getElementById('progressionStop').onclick=stopAudio;
+document.getElementById('playScale').onclick=()=>play('scale');document.getElementById('playChord').onclick=()=>play('chord');document.getElementById('stopAudio').onclick=stopAudio;
+readStore();loadArticles();renderHome();renderModes();setupProgressions();renderSynth();renderGroove();renderMix();renderResources();renderNotes();renderPractices();renderSongNotes();

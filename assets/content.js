@@ -1,6 +1,6 @@
 const CATEGORIES=['樂理與調式','合成器教學','節奏與曲風','編曲與歌曲分析','混音與音色','插件與資源','其他'];
-const routeCategories={theory:'樂理與調式',synth:'合成器教學',groove:'節奏與曲風',arrangement:'編曲與歌曲分析',mix:'混音與音色',resources:'插件與資源'};
-const modules=[['theory','♬','樂理與調式','調式亮暗、和弦、次屬與 Voice Leading'],['synth','▥','合成器教學','音色製作教學與 Serum → Vital 對照，共用一個入口'],['groove','◉','節奏與曲風','Funk、Acid Jazz、UK Garage 與切分'],['arrangement','▦','編曲與歌曲分析','歌曲結構、K-pop 音色拆解、Loop'],['mix','≋','混音與音色','EQ、音量、Pan、Reverb、Sidechain'],['resources','↗','插件與資源','免費工具、教學、Preset 與收藏'],['articles','▤','主題教材','GitHub 內容管理：K-pop、樂理與合成器教學']];
+const routeCategories={theory:'樂理與調式',progressions:'樂理與調式',synth:'合成器教學',groove:'節奏與曲風',arrangement:'編曲與歌曲分析',mix:'混音與音色',resources:'插件與資源'};
+const modules=[['theory','♬','樂理與調式','調式亮暗、和弦、次屬與 Voice Leading'],['progressions','♫','和弦進行','經典進行、12 主音、BPM 與多種合成樂器音色試聽'],['synth','▥','合成器教學','音色製作教學與 Serum → Vital 對照，共用一個入口'],['groove','◉','節奏與曲風','Funk、Acid Jazz、UK Garage 與切分'],['arrangement','▦','編曲與歌曲分析','歌曲結構、K-pop 音色拆解、Loop'],['mix','≋','混音與音色','EQ、音量、Pan、Reverb、Sidechain'],['resources','↗','插件與資源','免費工具、教學、Preset 與收藏'],['articles','▤','主題教材','GitHub 內容管理：K-pop、樂理與合成器教學']];
 const ROOT_OPTIONS=[
  {pc:0,label:'C',names:['C']},{pc:1,label:'C♯ / D♭',names:['D♭','C♯']},
  {pc:2,label:'D',names:['D']},{pc:3,label:'D♯ / E♭',names:['E♭','D♯']},
@@ -75,6 +75,34 @@ const MIX=[
  ['Reverb / Delay','使用 Pre-delay、Decay 和 Mix 控制前後距離；太多空間效果容易讓節奏模糊。'],
  ['Automation','利用音量、Filter、Reverb Send 等自動化，讓過門、尾音和段落更自然。']
 ];
+
+// Every step is [semitones above selected tonic, chord quality, roman numeral].
+// All four-beat chords are examples, not transcriptions of named copyrighted works.
+const PROGRESSION_PRESETS=[
+ {id:'pop-1564',name:'萬用流行｜1–5–6–4',genre:'Pop / K-pop',tonality:'major',desc:'穩定、明亮又帶一點情緒；常見於流行歌主歌與副歌。',steps:[[0,'maj','I'],[7,'maj','V'],[9,'min','vi'],[5,'maj','IV']]},
+ {id:'pop-6415',name:'抒情流行｜6–4–1–5',genre:'Ballad / Pop',tonality:'major',desc:'先從相對小調開始，情緒較內斂，再回到大調的穩定感。',steps:[[9,'min','vi'],[5,'maj','IV'],[0,'maj','I'],[7,'maj','V']]},
+ {id:'oldies-1645',name:'經典老歌｜1–6–4–5',genre:'Oldies / Doo-wop',tonality:'major',desc:'1950 年代流行歌常見的四和弦循環，和聲感清楚、容易記憶。',steps:[[0,'maj','I'],[9,'min','vi'],[5,'maj','IV'],[7,'maj','V']]},
+ {id:'canon-1563',name:'卡農式循環｜1–5–6–3–4–1–4–5',genre:'Classical / Pop',tonality:'major',desc:'類似卡農常用的低音級數運動，適合鋼琴與弦樂練習。',steps:[[0,'maj','I'],[7,'maj','V'],[9,'min','vi'],[4,'min','iii'],[5,'maj','IV'],[0,'maj','I'],[5,'maj','IV'],[7,'maj','V']]},
+ {id:'jazz-251',name:'Jazz 基礎｜2–5–1',genre:'Jazz',tonality:'major',desc:'經典的下行五度和聲功能連接：預備、屬功能、解決。',steps:[[2,'m7','ii7'],[7,'7','V7'],[0,'maj7','Imaj7']]},
+ {id:'jazz-1625',name:'Jazz Turnaround｜1–6–2–5',genre:'Jazz / Soul',tonality:'major',desc:'Imaj7 → VI7 → ii7 → V7。VI7 是次屬和弦，讓和聲有更強的推進感。',steps:[[0,'maj7','Imaj7'],[9,'7','VI7'],[2,'m7','ii7'],[7,'7','V7']]},
+ {id:'neosoul-4536',name:'City Pop／Neo Soul｜4–5–3–6',genre:'City Pop / R&B',tonality:'major',desc:'七和弦的溫暖與流動感；適合 Rhodes、電鋼琴和柔和 Pad。',steps:[[5,'maj7','IVmaj7'],[7,'7','V7'],[4,'m7','iii7'],[9,'m7','vi7']]},
+ {id:'ballad-134m',name:'借用小四級｜1–3–4–小4',genre:'Ballad / OST',tonality:'major',desc:'最後的 iv 借用平行小調，產生細膩、懷舊的轉折。',steps:[[0,'maj','I'],[4,'min','iii'],[5,'maj','IV'],[5,'min','iv']]},
+ {id:'funk-dominant',name:'Funk Vamp｜1⁷–4⁷',genre:'Funk / Blues',tonality:'major',desc:'兩個屬七和弦循環。可搭配切分 Bass、節奏吉他與 Clavinet 風格音色。',steps:[[0,'7','I7'],[5,'7','IV7']]},
+ {id:'minor-pop',name:'小調流行｜i–♭VI–♭III–♭VII',genre:'Minor / Cinematic',tonality:'minor',desc:'暗色系流行、影視配樂常見的自然小調級數組合。',steps:[[0,'min','i'],[8,'maj','♭VI'],[3,'maj','♭III'],[10,'maj','♭VII']]},
+ {id:'minor-251',name:'小調 Jazz｜iiø–V7–i',genre:'Jazz / Minor',tonality:'minor',desc:'半減七和弦 → 屬七和弦 → 小和弦，適合比較大小調的解決方式。',steps:[[2,'m7b5','iiø7'],[7,'7','V7'],[0,'min','i']]},
+ {id:'blues-12',name:'12 小節 Blues',genre:'Blues / Funk',tonality:'major',desc:'I7、IV7、V7 的 12 小節輪替，可加 Swing、Shuffle 或 Funk Groove。',steps:[[0,'7','I7'],[0,'7','I7'],[0,'7','I7'],[0,'7','I7'],[5,'7','IV7'],[5,'7','IV7'],[0,'7','I7'],[0,'7','I7'],[7,'7','V7'],[5,'7','IV7'],[0,'7','I7'],[7,'7','V7']]}
+];
+const PROGRESSION_INSTRUMENTS=[
+ {id:'piano',name:'鋼琴 Piano',tip:'清楚的起音與自然衰減，適合先聽出和聲方向。',attack:.006,decay:.7,sustain:.19,release:.22,partials:[[1,'triangle',1],[2,'sine',.20],[3,'sine',.07]],level:.045},
+ {id:'rhodes',name:'電鋼琴 Rhodes 風格',tip:'柔和鈴響與略帶金屬感的電鋼琴風格；為合成模擬，非 Rhodes 取樣。',attack:.006,decay:.9,sustain:.36,release:.28,partials:[[1,'sine',1],[2,'sine',.25],[4,'sine',.10]],level:.048},
+ {id:'guitar',name:'木吉他 Acoustic 風格',tip:'快速衰減的撥弦模擬；並非真實六弦吉他錄音。',attack:.003,decay:.33,sustain:.09,release:.20,partials:[[1,'triangle',1],[2,'sine',.18],[3,'sine',.07]],level:.043},
+ {id:'clean',name:'Clean Guitar 風格',tip:'較柔的撥弦起音；適合比較 Funk 或 Neo Soul 的和弦。',attack:.008,decay:.52,sustain:.17,release:.18,partials:[[1,'sine',1],[2,'triangle',.14],[3,'sine',.06]],level:.049},
+ {id:'organ',name:'風琴 Organ',tip:'持續、和聲飽滿的風琴合成聲響。',attack:.019,decay:.06,sustain:.92,release:.16,partials:[[1,'sine',1],[2,'sine',.34],[3,'sine',.16]],level:.038},
+ {id:'strings',name:'弦樂 Strings',tip:'較慢起音、連續的弦樂合成聲響；並非真實弦樂團取樣。',attack:.19,decay:.24,sustain:.75,release:.58,partials:[[1,'sawtooth',.75],[1.005,'sawtooth',.28]],level:.024,lowpass:1750},
+ {id:'pad',name:'合成器 Synth Pad',tip:'柔和、延展的合成器氛圍音色。',attack:.25,decay:.30,sustain:.75,release:.65,partials:[[1,'sawtooth',.62],[1.008,'sawtooth',.34]],level:.027,lowpass:1250},
+ {id:'pluck',name:'Pluck Synth',tip:'明亮、短促的電子撥弦音色，適合節奏感強的和弦。',attack:.004,decay:.24,sustain:.08,release:.14,partials:[[1,'triangle',.9],[2,'sine',.26],[3,'sine',.12]],level:.053}
+];
+
 const RESOURCES=[
  ['Vital 官方網站','免費與付費方案、安裝及插件資訊','https://vital.audio/'],
  ['Vital 官方說明','Vital 操作與功能文件入口','https://vital.audio/'],
